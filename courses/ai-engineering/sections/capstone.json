@@ -1,0 +1,535 @@
+{
+  "id": "capstone",
+  "title": "Capstone Product",
+  "summary": "Weeks 9–11. Build one AI product end to end that a real business would pay for: choose and validate a problem, design the architecture and cost, ship a frontend or WhatsApp/Telegram/email channel, get 3 real users, iterate with evals, and launch with a demo and a case study.",
+  "status": "ready",
+  "lessons": [
+    {
+      "id": "cap-choosing-the-problem",
+      "title": "Choosing a problem worth three weeks",
+      "duration": "75 min",
+      "videos": [
+        {
+          "youtube": "z1iF1c8w5Lg",
+          "title": "Y Combinator: How To Talk To Users (Startup School)"
+        },
+        {
+          "youtube": "DOtCl5PU8F0",
+          "title": "Y Combinator: Kevin Hale, How to Evaluate Startup Ideas"
+        }
+      ],
+      "body": {
+        "file": "lessons/capstone/cap-choosing-the-problem.md"
+      },
+      "resources": [],
+      "practice": [
+        {
+          "id": "cap-spec-check",
+          "type": "code",
+          "title": "Check a one-page product spec",
+          "prompt": {
+            "file": "practice/cap-spec-check/prompt.md"
+          },
+          "starter": {
+            "file": "practice/cap-spec-check/starter.py"
+          },
+          "tests": {
+            "file": "practice/cap-spec-check/tests.py"
+          },
+          "solution": {
+            "file": "practice/cap-spec-check/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "cap-quiz-validation-question",
+          "type": "quiz",
+          "question": "You're interviewing a shop owner about a possible WhatsApp bot. Which question gives you the most reliable signal?",
+          "options": [
+            "\"Would you use a bot that answers your customers for you?\"",
+            "\"How much would you pay for an AI assistant?\"",
+            "\"Walk me through yesterday's customer messages. Which ones took the longest?\"",
+            "\"Don't you think AI will change how small businesses work?\""
+          ],
+          "answer": 2,
+          "explanation": "Questions about **past behaviour** produce facts: real messages, real time spent, real workarounds. Questions about your idea or hypothetical prices produce polite yeses that mean nothing."
+        },
+        {
+          "id": "cap-quiz-success-metric",
+          "type": "quiz",
+          "question": "Which is the best success metric for a job-application assistant's one-page spec?",
+          "options": [
+            "Users find it helpful",
+            "80% of tailored CVs rated \"would send as is or with small edits\" by 3 users over 5+ real applications each",
+            "It uses the most capable Claude model",
+            "The code has 100% test coverage"
+          ],
+          "answer": 1,
+          "explanation": "A success metric must be a **number you can measure** about the user's outcome. \"Helpful\" can't fail, the model choice is an implementation detail, and test coverage measures your code, not whether users get value."
+        }
+      ]
+    },
+    {
+      "id": "cap-architecture",
+      "title": "From spec to architecture",
+      "duration": "75 min",
+      "videos": [
+        {
+          "youtube": "QRZ_l7cVzzU",
+          "title": "Y Combinator: How to Build An MVP (Startup School)"
+        }
+      ],
+      "body": {
+        "file": "lessons/capstone/cap-architecture.md"
+      },
+      "resources": [
+        {
+          "title": "Anthropic: Building effective AI agents",
+          "url": "https://www.anthropic.com/engineering/building-effective-agents"
+        },
+        {
+          "title": "Claude docs: Pricing",
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing"
+        },
+        {
+          "title": "Claude docs: Models overview",
+          "url": "https://platform.claude.com/docs/en/about-claude/models/overview"
+        },
+        {
+          "title": "Mermaid: Sequence diagrams",
+          "url": "https://mermaid.js.org/syntax/sequenceDiagram.html"
+        },
+        {
+          "title": "Architectural Decision Records (adr.github.io)",
+          "url": "https://adr.github.io/"
+        }
+      ],
+      "practice": [
+        {
+          "id": "cap-cost-estimate",
+          "type": "code",
+          "title": "Estimate LLM cost per month",
+          "prompt": {
+            "file": "practice/cap-cost-estimate/prompt.md"
+          },
+          "starter": {
+            "file": "practice/cap-cost-estimate/starter.py"
+          },
+          "tests": {
+            "file": "practice/cap-cost-estimate/tests.py"
+          },
+          "solution": {
+            "file": "practice/cap-cost-estimate/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "cap-quiz-pattern",
+          "type": "quiz",
+          "question": "A shop has 50 products and a one-page FAQ (about 4,000 tokens in total) and wants a bot to answer customer questions about them. What's the simplest architecture that works?",
+          "options": [
+            "An agent with a search tool over the catalogue",
+            "RAG with embeddings and a vector database",
+            "A single call with the catalogue and FAQ in the system prompt",
+            "Fine-tuning a model on the catalogue"
+          ],
+          "answer": 2,
+          "explanation": "4,000 tokens fits easily in the prompt, so the model sees every price on every call: no retrieval step to get wrong, nothing to ingest. Add RAG when the data stops fitting or gets too expensive per message, and an agent only when the steps can't be written down in advance."
+        },
+        {
+          "id": "cap-quiz-adr",
+          "type": "quiz",
+          "question": "What belongs in an architecture decision record (ADR)?",
+          "options": [
+            "A full API reference for every route",
+            "The context, the decision, and its consequences, for one significant choice",
+            "Meeting notes from every user interview",
+            "The project's to-do list"
+          ],
+          "answer": 1,
+          "explanation": "An ADR is a short, dated note about **one** decision: why it was needed (context), what you chose, and the trade-offs that follow. If you change your mind later, you write a new ADR that supersedes it."
+        }
+      ]
+    },
+    {
+      "id": "cap-frontend",
+      "title": "A usable frontend, fast",
+      "duration": "75 min",
+      "videos": [
+        {
+          "youtube": "4sPnOqeUDmk",
+          "title": "Streamlit: Introducing Streamlit Chat Elements"
+        },
+        {
+          "youtube": "Sklc_fQBmcs",
+          "title": "Fireship: Next.js in 100 Seconds // Plus Full Beginner's Tutorial"
+        }
+      ],
+      "body": {
+        "file": "lessons/capstone/cap-frontend.md"
+      },
+      "resources": [
+        {
+          "title": "Streamlit docs: Build a basic LLM chat app",
+          "url": "https://docs.streamlit.io/develop/tutorials/chat-and-llm-apps/build-conversational-apps"
+        },
+        {
+          "title": "Streamlit docs: Chat elements",
+          "url": "https://docs.streamlit.io/develop/api-reference/chat"
+        },
+        {
+          "title": "Streamlit docs: st.write_stream",
+          "url": "https://docs.streamlit.io/develop/api-reference/write-magic/st.write_stream"
+        },
+        {
+          "title": "Next.js docs: Getting Started",
+          "url": "https://nextjs.org/docs/app/getting-started"
+        },
+        {
+          "title": "MDN: Using server-sent events",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events"
+        },
+        {
+          "title": "FastAPI docs: Request Files",
+          "url": "https://fastapi.tiangolo.com/tutorial/request-files/"
+        },
+        {
+          "title": "FastAPI docs: CORS",
+          "url": "https://fastapi.tiangolo.com/tutorial/cors/"
+        },
+        {
+          "title": "W3C WAI: Introduction to Web Accessibility",
+          "url": "https://www.w3.org/WAI/fundamentals/accessibility-intro/"
+        }
+      ],
+      "practice": [
+        {
+          "id": "cap-sse-reader",
+          "type": "code",
+          "title": "Read your backend's stream from a frontend",
+          "prompt": {
+            "file": "practice/cap-sse-reader/prompt.md"
+          },
+          "starter": {
+            "file": "practice/cap-sse-reader/starter.py"
+          },
+          "tests": {
+            "file": "practice/cap-sse-reader/tests.py"
+          },
+          "solution": {
+            "file": "practice/cap-sse-reader/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "cap-quiz-frontend-choice",
+          "type": "quiz",
+          "question": "Which frontend fits best for an admin page that only one shop owner will use to review conversations and edit the price list?",
+          "options": [
+            "Next.js with a custom design system",
+            "Streamlit",
+            "A native Android app",
+            "A WhatsApp bot"
+          ],
+          "answer": 1,
+          "explanation": "Streamlit is ideal for internal tools: pure Python, a working UI in an afternoon, and nobody minds that it looks like Streamlit. Save Next.js for public, branded products."
+        },
+        {
+          "id": "cap-quiz-aria-live",
+          "type": "quiz",
+          "question": "Your page streams the model's answer into a `<div>`. What makes screen-reader users aware that the answer is arriving?",
+          "options": [
+            "A placeholder attribute on the div",
+            "Making the text bold",
+            "`aria-live=\"polite\"` on the region that updates",
+            "A `title` attribute on the submit button"
+          ],
+          "answer": 2,
+          "explanation": "An `aria-live` region tells assistive technology to announce changes to its content. `polite` waits for a pause instead of interrupting. Use `role=\"alert\"` for errors."
+        }
+      ]
+    },
+    {
+      "id": "cap-messaging-channels",
+      "title": "Messaging channels: WhatsApp, Telegram and email",
+      "duration": "90 min",
+      "videos": [
+        {
+          "youtube": "KP6_BUw3i0U",
+          "title": "Meta Developers: Building End-to-End Experiences with the WhatsApp Business Platform"
+        }
+      ],
+      "body": {
+        "file": "lessons/capstone/cap-messaging-channels.md"
+      },
+      "resources": [
+        {
+          "title": "WhatsApp Cloud API: Get started",
+          "url": "https://developers.facebook.com/documentation/business-messaging/whatsapp/get-started"
+        },
+        {
+          "title": "WhatsApp Cloud API: Create a webhook endpoint",
+          "url": "https://developers.facebook.com/documentation/business-messaging/whatsapp/webhooks/create-webhook-endpoint"
+        },
+        {
+          "title": "WhatsApp Cloud API: Service messages and customer service windows",
+          "url": "https://developers.facebook.com/documentation/business-messaging/whatsapp/messages/send-messages"
+        },
+        {
+          "title": "WhatsApp Cloud API: Text messages",
+          "url": "https://developers.facebook.com/documentation/business-messaging/whatsapp/messages/text-messages"
+        },
+        {
+          "title": "WhatsApp Cloud API: Template fundamentals",
+          "url": "https://developers.facebook.com/documentation/business-messaging/whatsapp/templates/overview"
+        },
+        {
+          "title": "WhatsApp Business Platform: Pricing",
+          "url": "https://developers.facebook.com/documentation/business-messaging/whatsapp/pricing"
+        },
+        {
+          "title": "WhatsApp Cloud API: Business-scoped user IDs",
+          "url": "https://developers.facebook.com/documentation/business-messaging/whatsapp/business-scoped-user-ids"
+        },
+        {
+          "title": "Telegram: Bots, an introduction for developers",
+          "url": "https://core.telegram.org/bots"
+        },
+        {
+          "title": "Telegram Bot API reference",
+          "url": "https://core.telegram.org/bots/api"
+        },
+        {
+          "title": "Python docs: hmac",
+          "url": "https://docs.python.org/3/library/hmac.html"
+        },
+        {
+          "title": "Gmail: Email sender guidelines",
+          "url": "https://support.google.com/mail/answer/81126"
+        }
+      ],
+      "practice": [
+        {
+          "id": "cap-verify-signature",
+          "type": "code",
+          "title": "Verify a webhook signature",
+          "prompt": {
+            "file": "practice/cap-verify-signature/prompt.md"
+          },
+          "starter": {
+            "file": "practice/cap-verify-signature/starter.py"
+          },
+          "tests": {
+            "file": "practice/cap-verify-signature/tests.py"
+          },
+          "solution": {
+            "file": "practice/cap-verify-signature/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "cap-whatsapp-webhook",
+          "type": "code",
+          "title": "A WhatsApp webhook that answers with Claude",
+          "prompt": {
+            "file": "practice/cap-whatsapp-webhook/prompt.md"
+          },
+          "starter": {
+            "file": "practice/cap-whatsapp-webhook/starter.py"
+          },
+          "tests": {
+            "file": "practice/cap-whatsapp-webhook/tests.py"
+          },
+          "solution": {
+            "file": "practice/cap-whatsapp-webhook/solution.py"
+          },
+          "needs_api_key": true
+        },
+        {
+          "id": "cap-quiz-24h-window",
+          "type": "quiz",
+          "question": "A customer messaged a shop's WhatsApp number three days ago. The shop now wants your bot to tell them their order has shipped. What does the Cloud API allow?",
+          "options": [
+            "Any free-form text message, since the customer messaged first",
+            "Only a pre-approved template message, because the 24-hour customer service window has closed",
+            "Nothing at all: businesses can never start a conversation",
+            "A free-form message, as long as it's under 4,096 characters"
+          ],
+          "answer": 1,
+          "explanation": "Free-form service messages are only allowed while the **24-hour customer service window** is open; each user message resets it. Outside it, you can send only approved **template** messages (a shipping update is typically a *utility* template), and only to users who opted in."
+        },
+        {
+          "id": "cap-quiz-idempotency",
+          "type": "quiz",
+          "question": "Your WhatsApp webhook sometimes sends customers the same answer twice. What's the most likely cause and the right fix?",
+          "options": [
+            "Claude is non-deterministic; lower the temperature",
+            "Meta retried a delivery your server was slow to acknowledge; store each message id with a unique constraint, skip duplicates, and return 200 before calling Claude",
+            "The customer double-tapped send; ask them to stop",
+            "The signature check is failing; remove it"
+          ],
+          "answer": 1,
+          "explanation": "Meta retries deliveries that aren't acknowledged with a 200, so duplicates are normal. Make the handler **idempotent** (a unique message id, `INSERT OR IGNORE`) and acknowledge before the slow LLM call. Never remove signature verification."
+        }
+      ]
+    },
+    {
+      "id": "cap-user-testing-iteration",
+      "title": "Real users, feedback and iteration",
+      "duration": "75 min",
+      "videos": [
+        {
+          "youtube": "hyYCn_kAngI",
+          "title": "Y Combinator: How to Get Your First Customers (Startup School)"
+        }
+      ],
+      "body": {
+        "file": "lessons/capstone/cap-user-testing-iteration.md"
+      },
+      "resources": [
+        {
+          "title": "Claude docs: Define success criteria and build evaluations",
+          "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
+        },
+        {
+          "title": "Nigeria Data Protection Commission (NDPC)",
+          "url": "https://ndpc.gov.ng/"
+        }
+      ],
+      "practice": [
+        {
+          "id": "cap-redact-pii",
+          "type": "code",
+          "title": "Redact personal data before you log it",
+          "prompt": {
+            "file": "practice/cap-redact-pii/prompt.md"
+          },
+          "starter": {
+            "file": "practice/cap-redact-pii/starter.py"
+          },
+          "tests": {
+            "file": "practice/cap-redact-pii/tests.py"
+          },
+          "solution": {
+            "file": "practice/cap-redact-pii/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "cap-feedback-to-evals",
+          "type": "code",
+          "title": "Turn user feedback into eval cases",
+          "prompt": {
+            "file": "practice/cap-feedback-to-evals/prompt.md"
+          },
+          "starter": {
+            "file": "practice/cap-feedback-to-evals/starter.py"
+          },
+          "tests": {
+            "file": "practice/cap-feedback-to-evals/tests.py"
+          },
+          "solution": {
+            "file": "practice/cap-feedback-to-evals/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "cap-quiz-usability-session",
+          "type": "quiz",
+          "question": "During a usability session, your user hesitates for 20 seconds looking for the upload button. What should you do?",
+          "options": [
+            "Point to it straight away so the session keeps moving",
+            "Stay quiet, let them find it or give up, and note exactly where they looked",
+            "End the session: the user isn't technical enough",
+            "Ask whether they like the colour of the button"
+          ],
+          "answer": 1,
+          "explanation": "Where users get stuck is the most valuable data you'll collect. If you help, you lose it. Note what they did, then fix the design so the next user doesn't hesitate."
+        }
+      ]
+    },
+    {
+      "id": "cap-launch-demo",
+      "title": "Launch, demo and case study",
+      "duration": "60 min",
+      "videos": [
+        {
+          "youtube": "rNPJKpmp3TM",
+          "title": "Y Combinator: The secret to better product demos"
+        },
+        {
+          "youtube": "u36A-YTxiOw",
+          "title": "Y Combinator: The Best Way To Launch Your Startup (Startup School)"
+        }
+      ],
+      "body": {
+        "file": "lessons/capstone/cap-launch-demo.md"
+      },
+      "resources": [
+        {
+          "title": "Claude docs: Rate limits",
+          "url": "https://platform.claude.com/docs/en/api/rate-limits"
+        },
+        {
+          "title": "GitHub docs: Basic writing and formatting syntax",
+          "url": "https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax"
+        }
+      ],
+      "practice": [
+        {
+          "id": "cap-rate-limit",
+          "type": "code",
+          "title": "Rate-limit the public",
+          "prompt": {
+            "file": "practice/cap-rate-limit/prompt.md"
+          },
+          "starter": {
+            "file": "practice/cap-rate-limit/starter.py"
+          },
+          "tests": {
+            "file": "practice/cap-rate-limit/tests.py"
+          },
+          "solution": {
+            "file": "practice/cap-rate-limit/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "cap-quiz-demo-opening",
+          "type": "quiz",
+          "question": "What should the first 15 seconds of your 2-minute demo video show?",
+          "options": [
+            "Your tech stack: FastAPI, Claude, Docker, GitHub Actions",
+            "The problem, through a real person who has it",
+            "Your GitHub contribution graph",
+            "The setup instructions"
+          ],
+          "answer": 1,
+          "explanation": "Viewers decide in the first seconds whether to keep watching, and they care about the problem first. The stack gets one slide near the end; results and a call to action close the video."
+        }
+      ]
+    }
+  ],
+  "project": {
+    "id": "cap-project",
+    "title": "Your capstone product",
+    "brief": {
+      "file": "projects/capstone.md"
+    },
+    "checklist": [
+      "One-page spec in `docs/spec.md` (user, job to be done, numeric success metric, non-goals, 3-week scope), based on at least 5 user conversations",
+      "`docs/architecture.md` with the chosen pattern, data model, API routes, LLM calls, failure-mode table, cost estimate and a Mermaid sequence diagram",
+      "At least 3 ADRs in `docs/adr/` (pattern, model, and one more decision)",
+      "Walking skeleton deployed in week 9: channel → FastAPI → Claude → reply at a public URL or bot",
+      "Core job working, with an \"I don't know\" / hand-off-to-a-human path and friendly fallbacks on LLM errors",
+      "Webhooks (if used) verify signatures or secret tokens, deduplicate by message id, and acknowledge before calling Claude",
+      "Privacy note shown to users, consent before logging, phone numbers and emails redacted, user ids pseudonymised, a delete path",
+      "20+ eval cases (including cases from real user feedback) run in GitHub Actions on every push",
+      "Token counts stored per message; cost per user per month reported in the README against your estimate",
+      "Per-user rate limits, input caps and a spend cap for the public launch",
+      "Used by at least 3 real people for real tasks, with the success metric measured from the logs",
+      "A 2-minute demo video and a case-study README (problem, solution, architecture, results, what I'd do next)"
+    ],
+    "links": true
+  }
+}

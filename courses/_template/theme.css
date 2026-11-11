@@ -1,0 +1,6 @@
+/* Optional add-on stylesheet for this pack (theme.css in course.json).
+   It loads after the platform's own styles, so it can override the design tokens:
+   --accent, --bg, --surface, --ink, --muted, --line, --font-head, --font-body, --font-mono.
+   Example: a rounder, softer look.
+:root { --radius: 16px; --radius-s: 10px; }
+*/

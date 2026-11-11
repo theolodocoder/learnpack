@@ -1,0 +1,645 @@
+{
+  "id": "shipping",
+  "title": "Shipping",
+  "summary": "Weeks 7–8. Make your AI apps production-ready and public: config and secrets, Docker, deploying to Railway or Render, CI with test and eval gates, logging and LLM tracing with cost tracking, auth, rate limits, caching and prompt caching. Project: ship all three earlier projects.",
+  "status": "ready",
+  "lessons": [
+    {
+      "id": "ship-config-secrets",
+      "title": "Config, secrets and health checks",
+      "duration": "60 min",
+      "videos": [],
+      "body": {
+        "file": "lessons/shipping/ship-config-secrets.md"
+      },
+      "resources": [
+        {
+          "title": "The Twelve-Factor App: Config",
+          "url": "https://12factor.net/config"
+        },
+        {
+          "title": "FastAPI docs: Settings and environment variables",
+          "url": "https://fastapi.tiangolo.com/advanced/settings/"
+        },
+        {
+          "title": "Pydantic docs: Settings management",
+          "url": "https://docs.pydantic.dev/latest/concepts/pydantic_settings/"
+        },
+        {
+          "title": "GitHub docs: Secret scanning",
+          "url": "https://docs.github.com/en/code-security/secret-scanning/introduction/about-secret-scanning"
+        },
+        {
+          "title": "Railway docs: Using variables",
+          "url": "https://docs.railway.com/variables"
+        },
+        {
+          "title": "Render docs: Environment variables and secrets",
+          "url": "https://render.com/docs/configure-environment-variables"
+        }
+      ],
+      "practice": [
+        {
+          "id": "ship-settings-from-env",
+          "type": "code",
+          "title": "Fail-fast settings from the environment",
+          "prompt": {
+            "file": "practice/ship-settings-from-env/prompt.md"
+          },
+          "starter": {
+            "file": "practice/ship-settings-from-env/starter.py"
+          },
+          "tests": {
+            "file": "practice/ship-settings-from-env/tests.py"
+          },
+          "solution": {
+            "file": "practice/ship-settings-from-env/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "ship-health-endpoint",
+          "type": "code",
+          "title": "Health and readiness endpoints",
+          "prompt": {
+            "file": "practice/ship-health-endpoint/prompt.md"
+          },
+          "starter": {
+            "file": "practice/ship-health-endpoint/starter.py"
+          },
+          "tests": {
+            "file": "practice/ship-health-endpoint/tests.py"
+          },
+          "solution": {
+            "file": "practice/ship-health-endpoint/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "ship-quiz-leaked-key",
+          "type": "quiz",
+          "question": "You pushed a commit containing your `ANTHROPIC_API_KEY` to a public GitHub repo, noticed, and pushed a commit deleting it five minutes later. What should you do first?",
+          "options": [
+            "Nothing: the key is no longer in the latest commit",
+            "Rewrite the git history with `git filter-repo` so the key disappears",
+            "Revoke the key in the Claude Console, then create a new one and redeploy with it",
+            "Make the repository private"
+          ],
+          "answer": 2,
+          "explanation": "The key is in the history, and bots scan public pushes within minutes, so assume it's been copied. Revoking it is the only step that stops it working. Then put a new key everywhere it's needed and redeploy. Cleaning history is optional once the key is dead."
+        },
+        {
+          "id": "ship-quiz-liveness",
+          "type": "quiz",
+          "question": "Why should the liveness check (`/health`) avoid querying the database or calling Claude?",
+          "options": [
+            "Health checks must respond in under 1 ms",
+            "If a dependency has a brief problem, the platform would mark healthy app instances as dead and restart them, and calling Claude on every poll costs money",
+            "FastAPI doesn't allow database access in GET routes",
+            "Platforms send health checks without network access"
+          ],
+          "answer": 1,
+          "explanation": "Liveness answers \"is this process alive?\". Tying it to the database or Claude turns a dependency blip into restarts of perfectly good instances, and a paid API call on every poll. Check dependencies in a separate readiness route (`/ready`) that returns 503."
+        }
+      ]
+    },
+    {
+      "id": "ship-docker",
+      "title": "Docker for AI apps",
+      "duration": "75 min",
+      "videos": [
+        {
+          "youtube": "pg19Z8LL06w",
+          "title": "TechWorld with Nana: Docker Crash Course for Absolute Beginners"
+        },
+        {
+          "youtube": "JofsaZ3H1qM",
+          "title": "Docker: Dockerfile Best Practices"
+        },
+        {
+          "youtube": "SXwC9fSwct8",
+          "title": "TechWorld with Nana: Ultimate Docker Compose Tutorial"
+        }
+      ],
+      "body": {
+        "file": "lessons/shipping/ship-docker.md"
+      },
+      "resources": [
+        {
+          "title": "Docker docs: What is an image?",
+          "url": "https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-an-image/"
+        },
+        {
+          "title": "Docker docs: Building best practices",
+          "url": "https://docs.docker.com/build/building/best-practices/"
+        },
+        {
+          "title": "Docker docs: Dockerfile reference",
+          "url": "https://docs.docker.com/reference/dockerfile/"
+        },
+        {
+          "title": "Docker docs: Build context and .dockerignore",
+          "url": "https://docs.docker.com/build/concepts/context/"
+        },
+        {
+          "title": "uv docs: Using uv in Docker",
+          "url": "https://docs.astral.sh/uv/guides/integration/docker/"
+        },
+        {
+          "title": "FastAPI docs: FastAPI in containers (Docker)",
+          "url": "https://fastapi.tiangolo.com/deployment/docker/"
+        },
+        {
+          "title": "Docker docs: Docker Compose",
+          "url": "https://docs.docker.com/compose/"
+        }
+      ],
+      "practice": [
+        {
+          "id": "ship-dockerfile-lint",
+          "type": "code",
+          "title": "A tiny Dockerfile linter",
+          "prompt": {
+            "file": "practice/ship-dockerfile-lint/prompt.md"
+          },
+          "starter": {
+            "file": "practice/ship-dockerfile-lint/starter.py"
+          },
+          "tests": {
+            "file": "practice/ship-dockerfile-lint/tests.py"
+          },
+          "solution": {
+            "file": "practice/ship-dockerfile-lint/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "ship-quiz-docker-host",
+          "type": "quiz",
+          "question": "Your container logs `Uvicorn running on http://127.0.0.1:8000`. You started it with `-p 8000:8000`, but `curl localhost:8000` on your Mac is refused. Why?",
+          "options": [
+            "Port 8000 is reserved on macOS",
+            "Inside the container, 127.0.0.1 is the container's own loopback, so uvicorn only accepts connections from inside it; it must listen on 0.0.0.0",
+            "`-p` should be written `-p 127.0.0.1:8000`",
+            "The image needs `EXPOSE 8000` for `-p` to work"
+          ],
+          "answer": 1,
+          "explanation": "Each container has its own network namespace. `127.0.0.1` there means the container itself, and forwarded traffic arrives on another interface. `--host 0.0.0.0` listens on all interfaces. `EXPOSE` is documentation only."
+        },
+        {
+          "id": "ship-quiz-layer-order",
+          "type": "quiz",
+          "question": "Why does the Dockerfile copy `pyproject.toml` and `uv.lock` and run `uv sync` *before* `COPY . .`?",
+          "options": [
+            "uv can't read files copied with `COPY . .`",
+            "So the slow dependency-install layer stays cached when only your code changes, and rebuilds take seconds",
+            "It makes the final image smaller",
+            "Docker requires dependency files to be copied first"
+          ],
+          "answer": 1,
+          "explanation": "Docker reuses a cached layer only if that instruction and everything before it are unchanged. Your code changes on every build; dependencies rarely do. Installing them before copying the code keeps that layer cached."
+        }
+      ]
+    },
+    {
+      "id": "ship-deploy",
+      "title": "Deploying to a public URL",
+      "duration": "60 min",
+      "videos": [
+        {
+          "youtube": "eqjngvKfabg",
+          "title": "Corey Schafer: Python FastAPI Tutorial (Part 19): Deploy with Docker (uses Google Cloud Run; same ideas)"
+        },
+        {
+          "youtube": "A5I45e0CDbI",
+          "title": "ArjanCodes: Deploying FastAPI: Start With the End in Mind"
+        }
+      ],
+      "body": {
+        "file": "lessons/shipping/ship-deploy.md"
+      },
+      "resources": [
+        {
+          "title": "Railway guide: Deploy a FastAPI app",
+          "url": "https://railway.com/guides/fastapi"
+        },
+        {
+          "title": "Railway docs: Dockerfiles",
+          "url": "https://docs.railway.com/builds/dockerfiles"
+        },
+        {
+          "title": "Railway docs: Healthchecks",
+          "url": "https://docs.railway.com/deployments/healthchecks"
+        },
+        {
+          "title": "Railway docs: PostgreSQL",
+          "url": "https://docs.railway.com/databases/postgresql"
+        },
+        {
+          "title": "Railway docs: Public networking",
+          "url": "https://docs.railway.com/networking/public-networking"
+        },
+        {
+          "title": "Render docs: Docker on Render",
+          "url": "https://render.com/docs/docker"
+        },
+        {
+          "title": "Render docs: Health checks",
+          "url": "https://render.com/docs/health-checks"
+        },
+        {
+          "title": "Render docs: Postgres extensions (pgvector)",
+          "url": "https://render.com/docs/postgresql-extensions"
+        },
+        {
+          "title": "Render docs: Deploy for free (limits)",
+          "url": "https://render.com/docs/free"
+        },
+        {
+          "title": "FastAPI docs: CORS",
+          "url": "https://fastapi.tiangolo.com/tutorial/cors/"
+        },
+        {
+          "title": "FastAPI docs: Deployment concepts",
+          "url": "https://fastapi.tiangolo.com/deployment/concepts/"
+        }
+      ],
+      "practice": [
+        {
+          "id": "ship-public-api-guards",
+          "type": "code",
+          "title": "Guards for a public API: CORS and a body size limit",
+          "prompt": {
+            "file": "practice/ship-public-api-guards/prompt.md"
+          },
+          "starter": {
+            "file": "practice/ship-public-api-guards/starter.py"
+          },
+          "tests": {
+            "file": "practice/ship-public-api-guards/tests.py"
+          },
+          "solution": {
+            "file": "practice/ship-public-api-guards/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "ship-quiz-cors",
+          "type": "quiz",
+          "question": "Your API works perfectly from `curl`, but the React app on `https://myapp.com` gets a CORS error calling it. What's the fix?",
+          "options": [
+            "Add `mode: \"no-cors\"` to the browser's fetch call",
+            "Add `https://myapp.com` to `allow_origins` in the API's `CORSMiddleware`",
+            "Switch the API from HTTPS to HTTP",
+            "Set `allow_origins=[\"*\"]` so every site can call it"
+          ],
+          "answer": 1,
+          "explanation": "CORS is enforced by browsers using headers your **server** sends. `curl` ignores CORS, which is why it worked. Allow the exact origin. `\"*\"` would let any website spend your money through its visitors' browsers, and `no-cors` just makes the response unreadable."
+        },
+        {
+          "id": "ship-quiz-railway-health",
+          "type": "quiz",
+          "question": "You set Railway's healthcheck path to `/ready`. When does Railway call it?",
+          "options": [
+            "Every 30 seconds for as long as the service runs",
+            "When a new deployment starts, before switching traffic to it; not after the deploy is live",
+            "Only when you click a button in the dashboard",
+            "On every incoming user request"
+          ],
+          "answer": 1,
+          "explanation": "Railway uses the health check to decide when a new deployment can take traffic, and doesn't monitor it afterwards. For ongoing checks, use an external uptime monitor. (Render, by contrast, keeps checking and restarts unhealthy instances.)"
+        }
+      ]
+    },
+    {
+      "id": "ship-ci",
+      "title": "CI with GitHub Actions: tests and eval gates",
+      "duration": "60 min",
+      "videos": [
+        {
+          "youtube": "BQrohJ3PT7I",
+          "title": "GitHub: How to use GitHub Actions (GitHub for Beginners)"
+        },
+        {
+          "youtube": "R8_veQiYBjI",
+          "title": "TechWorld with Nana: GitHub Actions Tutorial - Basic Concepts and CI/CD Pipeline with Docker"
+        }
+      ],
+      "body": {
+        "file": "lessons/shipping/ship-ci.md"
+      },
+      "resources": [
+        {
+          "title": "GitHub Actions documentation",
+          "url": "https://docs.github.com/en/actions"
+        },
+        {
+          "title": "GitHub docs: Workflow syntax",
+          "url": "https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax"
+        },
+        {
+          "title": "GitHub docs: Using secrets in GitHub Actions",
+          "url": "https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets"
+        },
+        {
+          "title": "uv docs: Using uv in GitHub Actions",
+          "url": "https://docs.astral.sh/uv/guides/integration/github/"
+        },
+        {
+          "title": "GitHub docs: About rulesets",
+          "url": "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets"
+        },
+        {
+          "title": "GitHub docs: About protected branches",
+          "url": "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches"
+        }
+      ],
+      "practice": [
+        {
+          "id": "ship-eval-gate",
+          "type": "code",
+          "title": "An eval gate for CI",
+          "prompt": {
+            "file": "practice/ship-eval-gate/prompt.md"
+          },
+          "starter": {
+            "file": "practice/ship-eval-gate/starter.py"
+          },
+          "tests": {
+            "file": "practice/ship-eval-gate/tests.py"
+          },
+          "solution": {
+            "file": "practice/ship-eval-gate/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "ship-quiz-green-build",
+          "type": "quiz",
+          "question": "Your eval step prints `pass rate 62% (threshold 90%)`, yet the CI run is green. What's the most likely cause?",
+          "options": [
+            "GitHub Actions ignores Python output",
+            "The eval script exits with code 0 whatever the score; CI only looks at exit codes",
+            "The threshold must be set in the YAML file",
+            "Pass rates under 70% are rounded up"
+          ],
+          "answer": 1,
+          "explanation": "A step fails only when its command exits nonzero. The gate must turn \"below threshold\" into `sys.exit(1)`."
+        },
+        {
+          "id": "ship-quiz-ci-secrets",
+          "type": "quiz",
+          "question": "Why does the main CI workflow (on every push and pull request) run tests with fakes instead of your real `ANTHROPIC_API_KEY`?",
+          "options": [
+            "GitHub forbids API keys in Actions",
+            "Real calls cost money on every push, are slow and flaky, and secrets aren't given to pull requests from forks, so those runs would fail",
+            "The Anthropic SDK doesn't work on Linux runners",
+            "Fakes are more accurate than the real model"
+          ],
+          "answer": 1,
+          "explanation": "Tests should be free, fast and deterministic, and they must run on fork PRs, which don't receive secrets. Live evals against the real model go in a separate, manual or scheduled workflow with a CI-only key."
+        }
+      ]
+    },
+    {
+      "id": "ship-observability",
+      "title": "Observability for LLM apps",
+      "duration": "75 min",
+      "videos": [
+        {
+          "youtube": "2E8iTvGo9Hs",
+          "title": "Langfuse: 10 min Walkthrough of Langfuse"
+        },
+        {
+          "youtube": "CAQ_a2-9UOI",
+          "title": "IBM Technology: Observability vs. APM vs. Monitoring"
+        }
+      ],
+      "body": {
+        "file": "lessons/shipping/ship-observability.md"
+      },
+      "resources": [
+        {
+          "title": "Python docs: logging",
+          "url": "https://docs.python.org/3/library/logging.html"
+        },
+        {
+          "title": "Python docs: contextvars",
+          "url": "https://docs.python.org/3/library/contextvars.html"
+        },
+        {
+          "title": "Langfuse docs: Observability overview",
+          "url": "https://langfuse.com/docs/observability/overview"
+        },
+        {
+          "title": "Langfuse docs: Observability data model",
+          "url": "https://langfuse.com/docs/observability/data-model"
+        },
+        {
+          "title": "Langfuse docs: Python and JS/TS SDKs",
+          "url": "https://langfuse.com/docs/observability/sdk/overview"
+        },
+        {
+          "title": "Langfuse docs: Evaluation and scores",
+          "url": "https://langfuse.com/docs/evaluation/overview"
+        }
+      ],
+      "practice": [
+        {
+          "id": "ship-json-logs",
+          "type": "code",
+          "title": "JSON logs with a request id",
+          "prompt": {
+            "file": "practice/ship-json-logs/prompt.md"
+          },
+          "starter": {
+            "file": "practice/ship-json-logs/starter.py"
+          },
+          "tests": {
+            "file": "practice/ship-json-logs/tests.py"
+          },
+          "solution": {
+            "file": "practice/ship-json-logs/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "ship-trace-llm",
+          "type": "code",
+          "title": "Trace every LLM call: tokens, cost, latency",
+          "prompt": {
+            "file": "practice/ship-trace-llm/prompt.md"
+          },
+          "starter": {
+            "file": "practice/ship-trace-llm/starter.py"
+          },
+          "tests": {
+            "file": "practice/ship-trace-llm/tests.py"
+          },
+          "solution": {
+            "file": "practice/ship-trace-llm/solution.py"
+          },
+          "needs_api_key": true
+        },
+        {
+          "id": "ship-quiz-p95",
+          "type": "quiz",
+          "question": "Over an hour, 95 requests took 1 s and 5 took 30 s. Which number best describes what your slowest users experience?",
+          "options": [
+            "The mean, 2.45 s",
+            "The p50 (median), 1 s",
+            "The p95, close to 30 s",
+            "The minimum, 1 s"
+          ],
+          "answer": 2,
+          "explanation": "The mean describes nobody, and the median hides the slow tail. The p95 shows the experience of the slowest 5%, which is where complaints come from. Dashboard p50 and p95."
+        },
+        {
+          "id": "ship-quiz-generation",
+          "type": "quiz",
+          "question": "In Langfuse's data model, what's the difference between a *span* and a *generation*?",
+          "options": [
+            "A generation is a whole request; a span is one line of logs",
+            "Both are timed steps inside a trace, but a generation is an LLM call and carries model, token usage and cost",
+            "Spans are only for errors",
+            "Generations are scores given by users"
+          ],
+          "answer": 1,
+          "explanation": "A trace is one request made of nested observations. A span is any timed unit of work (retrieval, a tool call); a generation is a span for a model call, with the extra fields Langfuse uses for cost and token dashboards. Scores are attached separately."
+        }
+      ]
+    },
+    {
+      "id": "ship-reliability-cost",
+      "title": "Reliability, auth and cost control",
+      "duration": "90 min",
+      "videos": [],
+      "body": {
+        "file": "lessons/shipping/ship-reliability-cost.md"
+      },
+      "resources": [
+        {
+          "title": "Claude docs: Prompt caching",
+          "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
+        },
+        {
+          "title": "Python docs: secrets",
+          "url": "https://docs.python.org/3/library/secrets.html"
+        },
+        {
+          "title": "Python docs: hmac (compare_digest)",
+          "url": "https://docs.python.org/3/library/hmac.html"
+        },
+        {
+          "title": "Python docs: hashlib",
+          "url": "https://docs.python.org/3/library/hashlib.html"
+        },
+        {
+          "title": "FastAPI docs: Middleware",
+          "url": "https://fastapi.tiangolo.com/tutorial/middleware/"
+        }
+      ],
+      "practice": [
+        {
+          "id": "ship-api-key-hashing",
+          "type": "code",
+          "title": "Issue and verify hashed API keys",
+          "prompt": {
+            "file": "practice/ship-api-key-hashing/prompt.md"
+          },
+          "starter": {
+            "file": "practice/ship-api-key-hashing/starter.py"
+          },
+          "tests": {
+            "file": "practice/ship-api-key-hashing/tests.py"
+          },
+          "solution": {
+            "file": "practice/ship-api-key-hashing/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "ship-token-bucket",
+          "type": "code",
+          "title": "Rate limiting with a token bucket",
+          "prompt": {
+            "file": "practice/ship-token-bucket/prompt.md"
+          },
+          "starter": {
+            "file": "practice/ship-token-bucket/starter.py"
+          },
+          "tests": {
+            "file": "practice/ship-token-bucket/tests.py"
+          },
+          "solution": {
+            "file": "practice/ship-token-bucket/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "ship-llm-cache",
+          "type": "code",
+          "title": "Cache repeated LLM answers with a TTL",
+          "prompt": {
+            "file": "practice/ship-llm-cache/prompt.md"
+          },
+          "starter": {
+            "file": "practice/ship-llm-cache/starter.py"
+          },
+          "tests": {
+            "file": "practice/ship-llm-cache/tests.py"
+          },
+          "solution": {
+            "file": "practice/ship-llm-cache/solution.py"
+          },
+          "needs_api_key": true
+        },
+        {
+          "id": "ship-quiz-prompt-cache-miss",
+          "type": "quiz",
+          "question": "Your system prompt starts with `Current time: {now}`, followed by a 10,000-token product manual with `cache_control` at its end. `usage.cache_read_input_tokens` is always 0. Why?",
+          "options": [
+            "The manual is below the minimum cacheable length",
+            "The timestamp changes on every request, so the prefix before the breakpoint never matches exactly",
+            "Prompt caching only works on the `messages`, not the system prompt",
+            "You need to call a separate endpoint to read from the cache"
+          ],
+          "answer": 1,
+          "explanation": "The cache is keyed on the exact prefix up to the breakpoint. Anything that varies must come **after** it: move the time into the user message (or drop it), and the manual becomes a stable, cacheable prefix."
+        },
+        {
+          "id": "ship-quiz-key-hash",
+          "type": "quiz",
+          "question": "Why is a fast hash like SHA-256 acceptable for storing API keys you generated, but not for users' passwords?",
+          "options": [
+            "SHA-256 is too slow for passwords",
+            "Generated keys are long and random, so there's nothing to guess; human passwords are short and guessable, so they need a deliberately slow hash like bcrypt or argon2",
+            "API keys don't need protecting",
+            "Passwords can't be hashed"
+          ],
+          "answer": 1,
+          "explanation": "An attacker with the hashes can try billions of guesses per second against a fast hash. That finds human passwords quickly, but 256 random bits can't be guessed at any speed."
+        }
+      ]
+    }
+  ],
+  "project": {
+    "id": "ship-project",
+    "title": "Ship it: production-ready and public",
+    "brief": {
+      "file": "projects/shipping.md"
+    },
+    "checklist": [
+      "Each project reads config from environment variables through a validated `Settings` model and refuses to start when a variable is missing; `.env` is git-ignored and `.env.example` committed",
+      "`/health` (liveness) and `/ready` (503 when the database is down) on every service, open without a key",
+      "A `Dockerfile` (uv, slim base, dependencies before code, non-root user, `0.0.0.0:${PORT:-8000}`) and `.dockerignore` per project; `docker compose up --build` runs the app with pgvector",
+      "All three deployed on Railway or Render with public HTTPS URLs, health check paths set, secrets in platform variables, and a spend limit on the production key",
+      "GitHub Actions runs `pytest`, offline evals with a pass-rate gate, and a Docker build on every push and PR; these checks are required on `main`",
+      "JSON logs with request ids, and every LLM call traced (model, tokens, cost, latency, errors) in Langfuse or similar, plus an uptime monitor on `/health`",
+      "Per-client API keys stored as SHA-256 hashes, a token-bucket rate limit returning 429 with `Retry-After`, exact-origin CORS, body size limits and timeouts",
+      "Prompt caching confirmed with `cache_read_input_tokens`, a response cache for exact repeats, and a measured cost per request in each README",
+      "Each README has the live URL, a working `curl` example, a demo GIF, an architecture diagram, eval results and a CI badge"
+    ],
+    "links": true
+  }
+}

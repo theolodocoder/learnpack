@@ -1,0 +1,598 @@
+{
+  "id": "maths",
+  "title": "Maths Foundations (optional)",
+  "summary": "Weekend track, alongside the main course. The intuition behind embeddings, similarity search and training: vectors, matrices, derivatives, gradient descent, neural networks and backprop, each one built in a few lines of NumPy.",
+  "status": "ready",
+  "lessons": [
+    {
+      "id": "math-vectors-dot-product",
+      "title": "Vectors, the dot product and cosine similarity",
+      "duration": "75 min",
+      "videos": [
+        {
+          "youtube": "fNk_zzaMoSs",
+          "title": "3Blue1Brown: Vectors (Essence of linear algebra, ch. 1)"
+        },
+        {
+          "youtube": "LyGKycYT2v0",
+          "title": "3Blue1Brown: Dot products and duality (Essence of linear algebra, ch. 9)"
+        }
+      ],
+      "body": {
+        "file": "lessons/maths/math-vectors-dot-product.md"
+      },
+      "resources": [
+        {
+          "title": "NumPy: the absolute basics for beginners",
+          "url": "https://numpy.org/doc/stable/user/absolute_beginners.html"
+        },
+        {
+          "title": "NumPy reference: numpy.linalg.norm",
+          "url": "https://numpy.org/doc/stable/reference/generated/numpy.linalg.norm.html"
+        },
+        {
+          "title": "NumPy reference: numpy.argsort",
+          "url": "https://numpy.org/doc/stable/reference/generated/numpy.argsort.html"
+        }
+      ],
+      "practice": [
+        {
+          "id": "math-cosine-similarity",
+          "type": "code",
+          "title": "Dot product, length and cosine similarity",
+          "prompt": {
+            "file": "practice/math-cosine-similarity/prompt.md"
+          },
+          "starter": {
+            "file": "practice/math-cosine-similarity/starter.py"
+          },
+          "tests": {
+            "file": "practice/math-cosine-similarity/tests.py"
+          },
+          "solution": {
+            "file": "practice/math-cosine-similarity/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "math-top-k-search",
+          "type": "code",
+          "title": "Semantic search with top_k",
+          "prompt": {
+            "file": "practice/math-top-k-search/prompt.md"
+          },
+          "starter": {
+            "file": "practice/math-top-k-search/starter.py"
+          },
+          "tests": {
+            "file": "practice/math-top-k-search/tests.py"
+          },
+          "solution": {
+            "file": "practice/math-top-k-search/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "math-quiz-cosine-scale",
+          "type": "quiz",
+          "question": "Two embeddings have a cosine similarity of `0.92`. You multiply one of them by 10. What is their cosine similarity now?",
+          "options": [
+            "`9.2`",
+            "`0.92`",
+            "`0.092`",
+            "It depends on the other vector's length"
+          ],
+          "answer": 1,
+          "explanation": "Cosine similarity divides both lengths out, so it depends only on direction. Scaling a vector by a positive number changes its length but not its direction. (The raw dot product *would* become 10 times bigger.)"
+        },
+        {
+          "id": "math-quiz-why-cosine",
+          "type": "quiz",
+          "question": "Why does semantic search rank by cosine similarity rather than by the raw dot product of unnormalised embeddings?",
+          "options": [
+            "The dot product can't be computed for vectors with hundreds of dimensions",
+            "The raw dot product rewards long vectors regardless of direction, and direction is what carries the meaning",
+            "Cosine similarity is faster to compute",
+            "The dot product is always positive, so it can't tell documents apart"
+          ],
+          "answer": 1,
+          "explanation": "`a · b = ‖a‖‖b‖cos θ`. A long document vector gets a big dot product with everything. Dividing by the lengths leaves `cos θ`, which measures only how closely the directions match. If the vectors are already unit length, the two are the same."
+        }
+      ]
+    },
+    {
+      "id": "math-matrices",
+      "title": "Matrices: transformations, shapes and batch similarity",
+      "duration": "80 min",
+      "videos": [
+        {
+          "youtube": "kYB8IZa5AuE",
+          "title": "3Blue1Brown: Linear transformations and matrices (ch. 3)"
+        },
+        {
+          "youtube": "XkY2DOUCWMU",
+          "title": "3Blue1Brown: Matrix multiplication as composition (ch. 4)"
+        }
+      ],
+      "body": {
+        "file": "lessons/maths/math-matrices.md"
+      },
+      "resources": [
+        {
+          "title": "NumPy reference: numpy.matmul (the @ operator)",
+          "url": "https://numpy.org/doc/stable/reference/generated/numpy.matmul.html"
+        },
+        {
+          "title": "NumPy user guide: Broadcasting",
+          "url": "https://numpy.org/doc/stable/user/basics.broadcasting.html"
+        }
+      ],
+      "practice": [
+        {
+          "id": "math-rotate-points",
+          "type": "code",
+          "title": "A matrix is a transformation: rotate points",
+          "prompt": {
+            "file": "practice/math-rotate-points/prompt.md"
+          },
+          "starter": {
+            "file": "practice/math-rotate-points/starter.py"
+          },
+          "tests": {
+            "file": "practice/math-rotate-points/tests.py"
+          },
+          "solution": {
+            "file": "practice/math-rotate-points/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "math-similarity-matrix",
+          "type": "code",
+          "title": "A whole batch of similarity scores in one multiply",
+          "prompt": {
+            "file": "practice/math-similarity-matrix/prompt.md"
+          },
+          "starter": {
+            "file": "practice/math-similarity-matrix/starter.py"
+          },
+          "tests": {
+            "file": "practice/math-similarity-matrix/tests.py"
+          },
+          "solution": {
+            "file": "practice/math-similarity-matrix/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "math-quiz-matmul-shapes",
+          "type": "quiz",
+          "question": "`Q` holds 32 query embeddings, shape `(32, 768)`. `D` holds 10,000 document embeddings, shape `(10000, 768)`. Which expression gives a `(32, 10000)` table of dot products?",
+          "options": [
+            "`Q @ D`",
+            "`Q @ D.T`",
+            "`D @ Q.T`",
+            "`Q * D`"
+          ],
+          "answer": 1,
+          "explanation": "`(32, 768) @ (768, 10000) → (32, 10000)`: the inner dimensions match and the outer ones survive. `Q @ D` fails (768 vs 10000), `D @ Q.T` gives the transposed `(10000, 32)` table, and `*` is element-wise, which fails to broadcast here."
+        },
+        {
+          "id": "math-quiz-keepdims",
+          "type": "quiz",
+          "question": "`X` has shape `(4, 4)`. Which line divides **each row** by that row's length?",
+          "options": [
+            "`X / np.linalg.norm(X, axis=1)`",
+            "`X / np.linalg.norm(X, axis=1, keepdims=True)`",
+            "`X / np.linalg.norm(X)`",
+            "`X / np.linalg.norm(X, axis=0, keepdims=True)`"
+          ],
+          "answer": 1,
+          "explanation": "`keepdims=True` gives shape `(4, 1)`, which broadcasts across each row. Without it the lengths have shape `(4,)`, which NumPy lines up with the *columns*: because `X` is square, the first option runs without an error and gives a silently wrong answer."
+        }
+      ]
+    },
+    {
+      "id": "math-derivatives-chain-rule",
+      "title": "Derivatives, gradients and the chain rule",
+      "duration": "80 min",
+      "videos": [
+        {
+          "youtube": "9vKqVkMQHKk",
+          "title": "3Blue1Brown: The paradox of the derivative (Essence of calculus, ch. 2)"
+        },
+        {
+          "youtube": "YG15m2VwSjA",
+          "title": "3Blue1Brown: Visualizing the chain rule and product rule (Essence of calculus, ch. 4)"
+        }
+      ],
+      "body": {
+        "file": "lessons/maths/math-derivatives-chain-rule.md"
+      },
+      "resources": [
+        {
+          "title": "CS231n: Optimization (numerical vs analytic gradients)",
+          "url": "https://cs231n.github.io/optimization-1/"
+        }
+      ],
+      "practice": [
+        {
+          "id": "math-numerical-derivative",
+          "type": "code",
+          "title": "Numerical derivatives and gradients",
+          "prompt": {
+            "file": "practice/math-numerical-derivative/prompt.md"
+          },
+          "starter": {
+            "file": "practice/math-numerical-derivative/starter.py"
+          },
+          "tests": {
+            "file": "practice/math-numerical-derivative/tests.py"
+          },
+          "solution": {
+            "file": "practice/math-numerical-derivative/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "math-chain-rule",
+          "type": "code",
+          "title": "The chain rule on a one-weight neuron",
+          "prompt": {
+            "file": "practice/math-chain-rule/prompt.md"
+          },
+          "starter": {
+            "file": "practice/math-chain-rule/starter.py"
+          },
+          "tests": {
+            "file": "practice/math-chain-rule/tests.py"
+          },
+          "solution": {
+            "file": "practice/math-chain-rule/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "math-quiz-chain-rule",
+          "type": "quiz",
+          "question": "`f(x) = sigmoid(3x)`. Using `sigmoid'(z) = sigmoid(z)·(1 − sigmoid(z))`, what is `f'(x)`?",
+          "options": [
+            "`sigmoid(3x)·(1 − sigmoid(3x))`",
+            "`3·sigmoid(3x)·(1 − sigmoid(3x))`",
+            "`3·sigmoid(x)·(1 − sigmoid(x))`",
+            "`sigmoid(3)·(1 − sigmoid(3))·x`"
+          ],
+          "answer": 1,
+          "explanation": "Chain rule with `u = 3x`: `df/dx = sigmoid'(u) · du/dx = sigmoid(3x)(1 − sigmoid(3x)) · 3`. Forgetting the inner derivative (the 3) is the classic mistake, and a numerical check catches it immediately."
+        },
+        {
+          "id": "math-quiz-gradient-direction",
+          "type": "quiz",
+          "question": "The gradient `∇L` of a loss with respect to the weights points…",
+          "options": [
+            "straight towards the minimum of the loss",
+            "in the direction in which the loss increases fastest",
+            "in the direction in which the loss decreases fastest",
+            "along the weights with the largest values"
+          ],
+          "answer": 1,
+          "explanation": "The gradient points uphill: the direction of steepest increase. That's why gradient descent steps along `−∇L`. It points downhill *locally*, which is not necessarily straight at the minimum."
+        }
+      ]
+    },
+    {
+      "id": "math-gradient-descent",
+      "title": "Gradient descent: how models learn",
+      "duration": "75 min",
+      "videos": [
+        {
+          "youtube": "IHZwWFHWa-w",
+          "title": "3Blue1Brown: Gradient descent, how neural networks learn"
+        }
+      ],
+      "body": {
+        "file": "lessons/maths/math-gradient-descent.md"
+      },
+      "resources": [
+        {
+          "title": "CS231n: Optimization and gradient descent",
+          "url": "https://cs231n.github.io/optimization-1/"
+        }
+      ],
+      "practice": [
+        {
+          "id": "math-gradient-step",
+          "type": "code",
+          "title": "Mean squared error and one gradient step",
+          "prompt": {
+            "file": "practice/math-gradient-step/prompt.md"
+          },
+          "starter": {
+            "file": "practice/math-gradient-step/starter.py"
+          },
+          "tests": {
+            "file": "practice/math-gradient-step/tests.py"
+          },
+          "solution": {
+            "file": "practice/math-gradient-step/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "math-fit-line",
+          "type": "code",
+          "title": "Fit a line by gradient descent",
+          "prompt": {
+            "file": "practice/math-fit-line/prompt.md"
+          },
+          "starter": {
+            "file": "practice/math-fit-line/starter.py"
+          },
+          "tests": {
+            "file": "practice/math-fit-line/tests.py"
+          },
+          "solution": {
+            "file": "practice/math-fit-line/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "math-quiz-learning-rate",
+          "type": "quiz",
+          "question": "Over the first five steps of training, your loss goes `2.1, 3.5, 9.8, 41.0, inf`. What's the most likely fix?",
+          "options": [
+            "Train for more steps",
+            "Increase the learning rate",
+            "Decrease the learning rate",
+            "Use a bigger model"
+          ],
+          "answer": 2,
+          "explanation": "A loss that grows every step and blows up to `inf` is the signature of a learning rate that's too large: each step overshoots the valley floor and lands higher on the other side."
+        },
+        {
+          "id": "math-quiz-bias-step",
+          "type": "quiz",
+          "question": "For the line `pred = w·x + b` with MSE loss, every prediction is too high (every error is positive). What does one gradient-descent step do to `b`?",
+          "options": [
+            "Increases it",
+            "Decreases it",
+            "Leaves it unchanged",
+            "Sets it to zero"
+          ],
+          "answer": 1,
+          "explanation": "`∂L/∂b = mean(2·error)` is positive, and the update is `b ← b − lr · ∂L/∂b`, so `b` goes down, which lowers every prediction."
+        }
+      ]
+    },
+    {
+      "id": "math-neural-networks",
+      "title": "Neural networks: neurons to next-token probabilities",
+      "duration": "80 min",
+      "videos": [
+        {
+          "youtube": "aircAruvnKk",
+          "title": "3Blue1Brown: But what is a neural network?"
+        },
+        {
+          "youtube": "IHZwWFHWa-w",
+          "title": "3Blue1Brown: Gradient descent, how neural networks learn"
+        }
+      ],
+      "body": {
+        "file": "lessons/maths/math-neural-networks.md"
+      },
+      "resources": [
+        {
+          "title": "Michael Nielsen: Neural Networks and Deep Learning, chapter 1",
+          "url": "http://neuralnetworksanddeeplearning.com/chap1.html"
+        },
+        {
+          "title": "CS231n: A minimal neural network case study",
+          "url": "https://cs231n.github.io/neural-networks-case-study/"
+        }
+      ],
+      "practice": [
+        {
+          "id": "math-activations",
+          "type": "code",
+          "title": "Activation functions: ReLU, sigmoid and a stable softmax",
+          "prompt": {
+            "file": "practice/math-activations/prompt.md"
+          },
+          "starter": {
+            "file": "practice/math-activations/starter.py"
+          },
+          "tests": {
+            "file": "practice/math-activations/tests.py"
+          },
+          "solution": {
+            "file": "practice/math-activations/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "math-forward-pass",
+          "type": "code",
+          "title": "A forward pass through a two-layer network",
+          "prompt": {
+            "file": "practice/math-forward-pass/prompt.md"
+          },
+          "starter": {
+            "file": "practice/math-forward-pass/starter.py"
+          },
+          "tests": {
+            "file": "practice/math-forward-pass/tests.py"
+          },
+          "solution": {
+            "file": "practice/math-forward-pass/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "math-quiz-softmax",
+          "type": "quiz",
+          "question": "What is `softmax([2.0, 2.0, 2.0])`?",
+          "options": [
+            "`[2.0, 2.0, 2.0]`",
+            "`[1/3, 1/3, 1/3]`",
+            "`[1.0, 0.0, 0.0]`",
+            "`[e², e², e²]`"
+          ],
+          "answer": 1,
+          "explanation": "Equal logits give equal probabilities, and softmax always sums to 1. Adding the same constant to every logit never changes the result, which is also why subtracting the max keeps softmax stable."
+        },
+        {
+          "id": "math-quiz-why-activation",
+          "type": "quiz",
+          "question": "Why must a network have an activation function such as ReLU between its layers?",
+          "options": [
+            "To keep the numbers between 0 and 1",
+            "Without it, stacked layers collapse into a single linear layer, so depth adds nothing",
+            "So that gradients can be computed at all",
+            "To reduce the number of parameters"
+          ],
+          "answer": 1,
+          "explanation": "`(X @ W1) @ W2 = X @ (W1 @ W2)`: two linear layers are one linear layer. The non-linearity is what lets a deep network represent curves and decisions a single matrix can't."
+        }
+      ]
+    },
+    {
+      "id": "math-backprop-whats-next",
+      "title": "Backpropagation, and what's next",
+      "duration": "120 min",
+      "videos": [
+        {
+          "youtube": "Ilg3gGewQ5U",
+          "title": "3Blue1Brown: Backpropagation, intuitively"
+        },
+        {
+          "youtube": "tIeHLnjs5U8",
+          "title": "3Blue1Brown: Backpropagation calculus"
+        },
+        {
+          "playlist": "PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ",
+          "title": "Andrej Karpathy: Neural Networks: Zero to Hero (your next step)"
+        }
+      ],
+      "body": {
+        "file": "lessons/maths/math-backprop-whats-next.md"
+      },
+      "resources": [
+        {
+          "title": "CS231n: Backpropagation, intuitions",
+          "url": "https://cs231n.github.io/optimization-2/"
+        },
+        {
+          "title": "Michael Nielsen: How the backpropagation algorithm works",
+          "url": "http://neuralnetworksanddeeplearning.com/chap2.html"
+        },
+        {
+          "title": "Karpathy: micrograd, a tiny autograd engine",
+          "url": "https://github.com/karpathy/micrograd"
+        },
+        {
+          "title": "Karpathy: Neural Networks: Zero to Hero",
+          "url": "https://karpathy.ai/zero-to-hero.html"
+        }
+      ],
+      "practice": [
+        {
+          "id": "math-backprop-gradients",
+          "type": "code",
+          "title": "Backpropagation by hand",
+          "prompt": {
+            "file": "practice/math-backprop-gradients/prompt.md"
+          },
+          "starter": {
+            "file": "practice/math-backprop-gradients/starter.py"
+          },
+          "tests": {
+            "file": "practice/math-backprop-gradients/tests.py"
+          },
+          "solution": {
+            "file": "practice/math-backprop-gradients/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "math-gradient-check",
+          "type": "code",
+          "title": "Gradient checking",
+          "prompt": {
+            "file": "practice/math-gradient-check/prompt.md"
+          },
+          "starter": {
+            "file": "practice/math-gradient-check/starter.py"
+          },
+          "tests": {
+            "file": "practice/math-gradient-check/tests.py"
+          },
+          "solution": {
+            "file": "practice/math-gradient-check/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "math-project-tiny-search-net",
+          "type": "code",
+          "title": "Project: tiny semantic search and a tiny network",
+          "prompt": {
+            "file": "practice/math-project-tiny-search-net/prompt.md"
+          },
+          "starter": {
+            "file": "practice/math-project-tiny-search-net/starter.py"
+          },
+          "tests": {
+            "file": "practice/math-project-tiny-search-net/tests.py"
+          },
+          "solution": {
+            "file": "practice/math-project-tiny-search-net/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "math-quiz-relu-gradient",
+          "type": "quiz",
+          "question": "During backprop through `h = relu(a)`, one hidden unit had `a = −0.7` for an example. How much gradient reaches `a` for that example?",
+          "options": [
+            "The same as `d_h`",
+            "Zero",
+            "`−0.7 · d_h`",
+            "It depends on the learning rate"
+          ],
+          "answer": 1,
+          "explanation": "ReLU's local derivative is 0 wherever `a ≤ 0`, so `d_a = d_h * (a > 0)` blocks the gradient. A unit that's negative for *every* input never gets any gradient: a dead ReLU."
+        },
+        {
+          "id": "math-quiz-gradient-check",
+          "type": "quiz",
+          "question": "Your gradient check reports a max relative error of `1e-10` for `W2` and `b2`, but `2e-1` for `W1` and `b1`. Where is the bug most likely?",
+          "options": [
+            "In the loss function",
+            "In the output layer's gradient formulas",
+            "Somewhere between `d_h` and the first layer: for example the ReLU mask or `X.T @ d_a`",
+            "Floating-point rounding; it's nothing to worry about"
+          ],
+          "answer": 2,
+          "explanation": "The output layer's gradients are right, so everything up to `d_pred` is right. The error appears below that: in `d_h = d_pred @ W2.T`, the ReLU mask, or the first layer's formulas. A relative error of `0.2` is never rounding."
+        }
+      ]
+    }
+  ],
+  "project": {
+    "id": "math-project",
+    "title": "Tiny semantic search and a tiny network, from scratch",
+    "brief": {
+      "file": "projects/maths.md"
+    },
+    "checklist": [
+      "Pass *Dot product, length and cosine similarity* and *Semantic search with top_k*, including the zero-vector and large-`k` cases",
+      "Score a batch of queries against every document with one matrix multiply (*A whole batch of similarity scores*)",
+      "Fit a line by gradient descent and see what too small and too large a learning rate do",
+      "Write a stable softmax and a two-layer forward pass that works on a batch",
+      "Hand-write backprop for a one-hidden-layer network and verify it with your own gradient checker",
+      "Pass the project exercise: `build_index` and `search`, then train a network that learns XOR"
+    ],
+    "links": false
+  }
+}

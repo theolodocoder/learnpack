@@ -1,0 +1,518 @@
+{
+  "id": "portfolio-earning",
+  "title": "Portfolio & Earning",
+  "summary": "Week 12 and month 4. Turn your shipped projects into a portfolio that gets replies, build in public, win freelance gigs and direct clients, and prepare for AI engineering internship interviews. Project: launch your AI engineering career with a 30-day earning plan.",
+  "status": "ready",
+  "lessons": [
+    {
+      "id": "earn-portfolio",
+      "title": "A portfolio that gets you hired",
+      "duration": "75 min",
+      "videos": [],
+      "body": {
+        "file": "lessons/portfolio-earning/earn-portfolio.md"
+      },
+      "resources": [
+        {
+          "title": "GitHub Docs: Managing your profile README",
+          "url": "https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-github-profile/customizing-your-profile/managing-your-profile-readme"
+        },
+        {
+          "title": "GitHub Docs: Pinning items to your profile",
+          "url": "https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-github-profile/customizing-your-profile/pinning-items-to-your-profile"
+        },
+        {
+          "title": "GitHub Docs: Basic writing and formatting syntax",
+          "url": "https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax"
+        },
+        {
+          "title": "Make a README",
+          "url": "https://www.makeareadme.com/"
+        },
+        {
+          "title": "GitHub Pages",
+          "url": "https://pages.github.com/"
+        },
+        {
+          "title": "GitHub Docs: Creating a GitHub Pages site",
+          "url": "https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site"
+        },
+        {
+          "title": "Loom: screen recorder",
+          "url": "https://www.loom.com/screen-recorder"
+        }
+      ],
+      "practice": [
+        {
+          "id": "earn-quiz-project-description",
+          "type": "quiz",
+          "question": "Which project description is most likely to get a reply from a client?",
+          "options": [
+            "\"An AI-powered chatbot built with cutting-edge LLM technology, RAG and vector databases.\"",
+            "\"Built with Python, FastAPI, Docker, PostgreSQL, pgvector, Claude and LangChain.\"",
+            "\"Answers staff questions from 40 policy PDFs with page citations. 0.87 accuracy on a 60-question eval set, ~$0.002 per answer, used by 12 people for 3 weeks.\"",
+            "\"A passion project exploring the future of AI and intelligent document understanding.\""
+          ],
+          "answer": 2,
+          "explanation": "It says what the project does and for whom, gives a quality number with how it was measured, a cost number and a real-world usage signal. The others are unverifiable claims or a tech list that tells a client nothing about the outcome."
+        },
+        {
+          "id": "earn-quiz-profile-readme",
+          "type": "quiz",
+          "question": "How do you make a README appear at the top of your GitHub profile page?",
+          "options": [
+            "Create a public repository with exactly the same name as your username and put a `README.md` at its root",
+            "Add a `PROFILE.md` file to any of your repositories",
+            "Pin a repository whose README you want to show",
+            "Paste the Markdown into the bio field in your profile settings"
+          ],
+          "answer": 0,
+          "explanation": "GitHub shows the `README.md` from the public repository that matches your username (for `ada-obi`, the repo `ada-obi/ada-obi`) above your pinned repositories. Pinning only shows repo cards, and the bio field doesn't render Markdown."
+        },
+        {
+          "id": "earn-quiz-evals-proof",
+          "type": "quiz",
+          "question": "Why put an eval table and cost per request in a project README?",
+          "options": [
+            "It makes the README longer, which looks more professional",
+            "Recruiters' keyword filters only match on numbers",
+            "It shows the system was measured, not just demoed once, and lets a client estimate what it will cost them",
+            "Platforms like Upwork require it"
+          ],
+          "answer": 2,
+          "explanation": "Measurement is what separates engineering from a demo that worked once. Accuracy with a stated method shows quality you can check, and cost per unit lets a client work out their monthly bill without a meeting."
+        }
+      ]
+    },
+    {
+      "id": "earn-build-in-public",
+      "title": "Building in public",
+      "duration": "60 min",
+      "videos": [
+        {
+          "youtube": "0yuL-JyW3_o",
+          "title": "Austin Kleon: Show your work (CreativeMornings)"
+        }
+      ],
+      "body": {
+        "file": "lessons/portfolio-earning/earn-build-in-public.md"
+      },
+      "resources": [
+        {
+          "title": "Austin Kleon: Show Your Work! (the book)",
+          "url": "https://austinkleon.com/show-your-work/"
+        },
+        {
+          "title": "LinkedIn Help",
+          "url": "https://www.linkedin.com/help/linkedin"
+        }
+      ],
+      "practice": [
+        {
+          "id": "earn-quiz-hook",
+          "type": "quiz",
+          "question": "Which first line is the strongest honest hook for a post about your RAG project?",
+          "options": [
+            "\"AI is changing everything. Here's my latest project 🚀\"",
+            "\"I built a chatbot that's 100% accurate and will replace your support team.\"",
+            "\"Check out my new repo, link below.\"",
+            "\"My RAG bot's retrieval hit rate went from 0.78 to 0.93 with one change.\""
+          ],
+          "answer": 3,
+          "explanation": "It's specific, has a real number and makes the reader want to know the change, and the post can deliver on it. \"AI is changing everything\" is vague, the \"100% accurate\" claim overclaims (and costs you trust with the people you want to hire you), and \"check out my repo\" gives no reason to read on."
+        },
+        {
+          "id": "earn-quiz-five-posts",
+          "type": "quiz",
+          "question": "You've finished your document extractor. Which plan best turns it into posts over the next few weeks?",
+          "options": [
+            "Five posts: the problem, a technical decision, a failure and its fix, the numbers, and a demo with a soft offer",
+            "One long post announcing it's done, then move on to the next project",
+            "Five posts each asking people to hire you",
+            "Repost the GitHub link every day until it gets traction"
+          ],
+          "answer": 0,
+          "explanation": "Each angle is useful on its own and shows a different side of your work: understanding the problem, judgement, honesty, measurement and a working product. One soft offer in five posts is about right; the others earn the right to make it."
+        },
+        {
+          "id": "earn-quiz-metric",
+          "type": "quiz",
+          "question": "After a month of posting, which number best tells you whether posting is helping you earn?",
+          "options": [
+            "Total impressions",
+            "Number of followers gained",
+            "Replies and DMs from potential clients, collaborators or recruiters",
+            "Number of posts published"
+          ],
+          "answer": 2,
+          "explanation": "Impressions and followers can grow without anyone relevant noticing. Conversations with people who could hire you, refer you or work with you are what turn posting into income."
+        }
+      ]
+    },
+    {
+      "id": "earn-freelance-gigs",
+      "title": "Freelance gigs: finding, winning and delivering",
+      "duration": "90 min",
+      "videos": [
+        {
+          "youtube": "wD9hMYbijDA",
+          "title": "Ali Abdaal: If I Wanted to Make $10,000 as a Student, I'd Do This"
+        }
+      ],
+      "body": {
+        "file": "lessons/portfolio-earning/earn-freelance-gigs.md"
+      },
+      "resources": [
+        {
+          "title": "Contra Help Center",
+          "url": "https://help.contra.com/"
+        },
+        {
+          "title": "Contra: Pricing",
+          "url": "https://contra.com/pricing"
+        },
+        {
+          "title": "Payoneer: Guides and resources for freelancers",
+          "url": "https://www.payoneer.com/freelancers/"
+        },
+        {
+          "title": "Grey",
+          "url": "https://grey.co/"
+        },
+        {
+          "title": "Wise (Nigeria)",
+          "url": "https://wise.com/"
+        }
+      ],
+      "practice": [
+        {
+          "id": "earn-quiz-proposal",
+          "type": "quiz",
+          "question": "A client posts: *\"Need an AI chatbot that answers customer questions from our 30 product manuals.\"* Which proposal opening is best?",
+          "options": [
+            "\"Hello, I am an experienced AI developer with 5+ skills including Python, LangChain and OpenAI.\"",
+            "\"I can do this for the lowest price on the platform.\"",
+            "\"You want customers to get correct answers from your 30 manuals without waiting for support. I built a chatbot that answers from 40 PDFs with page citations; here's a 2-minute demo.\"",
+            "\"Please check my profile for my experience.\""
+          ],
+          "answer": 2,
+          "explanation": "It restates the client's problem in their terms and immediately backs it with a relevant demo. The others talk about the freelancer, compete on price or make the client do the work."
+        },
+        {
+          "id": "earn-quiz-change-request",
+          "type": "quiz",
+          "question": "Halfway through a fixed-price chatbot project, the client asks: *\"Can it also answer from our WhatsApp chat history?\"* That wasn't in the agreed scope. What should you do?",
+          "options": [
+            "Add it quietly to keep the client happy",
+            "Refuse, because it wasn't in the contract",
+            "Say it's a good idea, that it's outside the current scope, and give a price and timeline as a change request (now or after launch)",
+            "Switch the contract to hourly without telling them"
+          ],
+          "answer": 2,
+          "explanation": "A change request keeps the relationship friendly and stops a fixed-price job turning into unpaid work, while still offering the client what they want. Doing it silently trains the client to expect free additions; refusing outright loses goodwill."
+        },
+        {
+          "id": "earn-quiz-api-costs",
+          "type": "quiz",
+          "question": "Your client's chatbot will make Claude API calls every day after launch. Whose API account should those calls run on?",
+          "options": [
+            "Yours, and you absorb the cost as part of the fixed price",
+            "A free trial account, renewed each month",
+            "It doesn't matter as long as it works",
+            "The client's own account and payment method, with your cost estimate given up front"
+          ],
+          "answer": 3,
+          "explanation": "Usage grows with the client's traffic, which you don't control. Putting keys and billing on the client's account keeps costs transparent and stops you from paying their usage; your cost-per-request numbers let you estimate the bill for them before launch."
+        }
+      ]
+    },
+    {
+      "id": "earn-outreach",
+      "title": "Direct outreach to small businesses",
+      "duration": "60 min",
+      "videos": [
+        {
+          "youtube": "hyYCn_kAngI",
+          "title": "Y Combinator: How to Get Your First Customers"
+        },
+        {
+          "youtube": "z1iF1c8w5Lg",
+          "title": "Y Combinator: How To Talk To Users"
+        }
+      ],
+      "body": {
+        "file": "lessons/portfolio-earning/earn-outreach.md"
+      },
+      "resources": [
+        {
+          "title": "Loom: screen recorder",
+          "url": "https://www.loom.com/screen-recorder"
+        }
+      ],
+      "practice": [
+        {
+          "id": "earn-quiz-outreach-message",
+          "type": "quiz",
+          "question": "Which first outreach message to a dental clinic is most likely to get a reply?",
+          "options": [
+            "A short message naming their 30-question FAQ, linking a 60-second video of an assistant answering from their public FAQ, and asking for a 15-minute call",
+            "A 600-word email explaining RAG, vector databases and your tech stack, with your CV attached",
+            "\"Hi, do you need AI? I can build anything. My rate is $X/hour.\"",
+            "The same message sent to 200 clinics at once"
+          ],
+          "answer": 0,
+          "explanation": "It's personal (it shows you looked at their business), talks about their problem, proves the solution with their own public content, and makes a small ask. Price comes after you understand the scope on a call."
+        },
+        {
+          "id": "earn-quiz-discovery",
+          "type": "quiz",
+          "question": "What is the main purpose of a discovery call?",
+          "options": [
+            "To present your full portfolio and explain how LLMs work",
+            "To understand the client's problem, what success looks like and their constraints well enough to propose a scoped solution with a price",
+            "To get the client to sign on the spot",
+            "To negotiate the lowest price they'll accept"
+          ],
+          "answer": 1,
+          "explanation": "You should talk less than the client. Their situation, pain, success criteria and constraints become your proposal: the scope, the acceptance criteria and the options you price."
+        },
+        {
+          "id": "earn-quiz-retainer",
+          "type": "quiz",
+          "question": "Why is a monthly retainer an honest offer after an LLM chatbot pilot, not just an upsell?",
+          "options": [
+            "Because clients always prefer monthly payments",
+            "Because the chatbot stops working after a month unless you renew it",
+            "Because documents change, new failure cases appear, models get updated and costs need monitoring, so the system genuinely needs ongoing work",
+            "Because platforms require it"
+          ],
+          "answer": 2,
+          "explanation": "LLM systems drift: content goes out of date, users ask new things, providers update or retire models. Keeping the knowledge base current, growing the eval set and testing new models is real, ongoing work that protects the client's results."
+        }
+      ]
+    },
+    {
+      "id": "earn-interviews",
+      "title": "Internships and junior AI engineer interviews",
+      "duration": "120 min",
+      "videos": [
+        {
+          "youtube": "L9TfZdODuFQ",
+          "title": "Exponent: How to Answer System Design Interview Questions (Complete Guide)"
+        }
+      ],
+      "body": {
+        "file": "lessons/portfolio-earning/earn-interviews.md"
+      },
+      "resources": [
+        {
+          "title": "Y Combinator: Startup jobs",
+          "url": "https://www.ycombinator.com/jobs"
+        },
+        {
+          "title": "Wellfound: Startup jobs",
+          "url": "https://wellfound.com/"
+        },
+        {
+          "title": "Python docs: collections.OrderedDict",
+          "url": "https://docs.python.org/3/library/collections.html#collections.OrderedDict"
+        },
+        {
+          "title": "Claude docs: Prompt caching",
+          "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
+        },
+        {
+          "title": "NeetCode practice (NeetCode 150)",
+          "url": "https://neetcode.io/practice"
+        }
+      ],
+      "practice": [
+        {
+          "id": "earn-lru-cache",
+          "type": "code",
+          "title": "An LRU cache with OrderedDict",
+          "prompt": {
+            "file": "practice/earn-lru-cache/prompt.md"
+          },
+          "starter": {
+            "file": "practice/earn-lru-cache/starter.py"
+          },
+          "tests": {
+            "file": "practice/earn-lru-cache/tests.py"
+          },
+          "solution": {
+            "file": "practice/earn-lru-cache/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "earn-merge-slots",
+          "type": "code",
+          "title": "Merge overlapping time slots",
+          "prompt": {
+            "file": "practice/earn-merge-slots/prompt.md"
+          },
+          "starter": {
+            "file": "practice/earn-merge-slots/starter.py"
+          },
+          "tests": {
+            "file": "practice/earn-merge-slots/tests.py"
+          },
+          "solution": {
+            "file": "practice/earn-merge-slots/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "earn-quiz-rag-vs-finetune",
+          "type": "quiz",
+          "question": "An interviewer asks: *\"A company wants its assistant to answer from internal policies that change every month. RAG or fine-tuning?\"* What's the best answer?",
+          "options": [
+            "RAG, because changing knowledge is updated by re-indexing documents, answers can cite sources, and it's cheaper to iterate and evaluate; fine-tuning suits style or format, not fast-changing facts",
+            "Fine-tuning, because the model then knows the policies permanently",
+            "Neither: just paste all policies into every prompt",
+            "Both are equivalent, so it doesn't matter"
+          ],
+          "answer": 0,
+          "explanation": "Fine-tuned knowledge goes stale and can't easily be cited or audited. With RAG you update the index when a policy changes and every answer can point to its source. Pasting everything into every prompt is costly and breaks down as documents grow."
+        },
+        {
+          "id": "earn-quiz-system-design-forgotten",
+          "type": "quiz",
+          "question": "In the internal-documents RAG design, which requirement do candidates most often forget, and is also a security issue?",
+          "options": [
+            "Using a dark-mode chat UI",
+            "Choosing the programming language",
+            "Supporting emoji in answers",
+            "Respecting document permissions, so users only get answers from documents they're allowed to see"
+          ],
+          "answer": 3,
+          "explanation": "If retrieval isn't filtered by the user's access, the assistant can leak confidential content (salaries, HR cases) to anyone who asks. Store access groups with each chunk, filter at retrieval time, and keep them in sync when permissions change."
+        },
+        {
+          "id": "earn-quiz-cost-estimate",
+          "type": "quiz",
+          "question": "10,000 questions a day, each with about 4,000 input tokens and 300 output tokens, on a model priced at $2 per 1M input tokens and $10 per 1M output tokens. Roughly what's the daily API cost?",
+          "options": [
+            "About $11",
+            "About $80",
+            "About $110",
+            "About $1,100"
+          ],
+          "answer": 2,
+          "explanation": "Input: 10,000 × 4,000 = 40M tokens × $2/1M = $80. Output: 10,000 × 300 = 3M tokens × $10/1M = $30. Total ≈ $110 a day, about $3,300 a month, before levers like prompt caching or a cheaper model for simple questions."
+        }
+      ]
+    },
+    {
+      "id": "earn-whats-next",
+      "title": "What's next: the deep dive, while you keep earning",
+      "duration": "45 min",
+      "videos": [
+        {
+          "playlist": "PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ",
+          "title": "Andrej Karpathy: Neural Networks: Zero to Hero"
+        },
+        {
+          "youtube": "kCc8FmEb1nY",
+          "title": "Andrej Karpathy: Let's build GPT: from scratch, in code, spelled out."
+        },
+        {
+          "playlist": "PLoROMvodv4rOY23Y0BoGoBGgQ1zmU_MT_",
+          "title": "Stanford CS336: Language Modeling from Scratch (2025)"
+        }
+      ],
+      "body": {
+        "file": "lessons/portfolio-earning/earn-whats-next.md"
+      },
+      "resources": [
+        {
+          "title": "Karpathy: Neural Networks: Zero to Hero",
+          "url": "https://karpathy.ai/zero-to-hero.html"
+        },
+        {
+          "title": "StatQuest with Josh Starmer (YouTube)",
+          "url": "https://www.youtube.com/@StatQuest"
+        },
+        {
+          "title": "DeepLearning.AI: Machine Learning Specialization",
+          "url": "https://www.deeplearning.ai/courses/machine-learning-specialization/"
+        },
+        {
+          "title": "scikit-learn: Getting started",
+          "url": "https://scikit-learn.org/stable/getting_started.html"
+        },
+        {
+          "title": "PyTorch: Learn the Basics",
+          "url": "https://pytorch.org/tutorials/beginner/basics/intro.html"
+        },
+        {
+          "title": "Hugging Face LLM Course",
+          "url": "https://huggingface.co/learn/llm-course"
+        },
+        {
+          "title": "Hugging Face PEFT (LoRA)",
+          "url": "https://huggingface.co/docs/peft/index"
+        },
+        {
+          "title": "Stanford CS336 (Spring 2025)",
+          "url": "https://stanford-cs336.github.io/spring2025/"
+        },
+        {
+          "title": "vLLM docs",
+          "url": "https://docs.vllm.ai/"
+        }
+      ],
+      "practice": [
+        {
+          "id": "earn-quiz-eval-noise",
+          "type": "quiz",
+          "question": "Your RAG app scores 0.84 on a 60-question eval set. After a prompt change it scores 0.87. What's the most accurate conclusion?",
+          "options": [
+            "The change definitely improved accuracy by 3 points",
+            "The difference is small relative to the uncertainty on 60 questions, so it may be noise; grow the eval set or check which questions changed",
+            "The change made things worse",
+            "Eval scores can't be compared between runs"
+          ],
+          "answer": 1,
+          "explanation": "On 60 questions the 95% interval around ~0.87 spans roughly 0.78–0.95, so a 2-question difference can easily be noise. Look at which questions flipped and grow the eval set before trusting small gains. This is where probability and statistics pay off."
+        },
+        {
+          "id": "earn-quiz-deep-dive-order",
+          "type": "quiz",
+          "question": "Which is the recommended order for the 2027 deep dive?",
+          "options": [
+            "CS336 → PyTorch → Karpathy → probability",
+            "Inference → fine-tuning → Karpathy → classic ML",
+            "Karpathy Zero to Hero → probability & statistics → classic ML → PyTorch + Hugging Face → CS336 → inference",
+            "Any order; they're independent"
+          ],
+          "answer": 2,
+          "explanation": "Each step builds on the one before: Karpathy gives hands-on intuition, probability and classic ML give the theory and evaluation discipline, PyTorch and Hugging Face are the tools, CS336 goes deep on training, and inference connects back to production."
+        }
+      ]
+    }
+  ],
+  "project": {
+    "id": "earn-project",
+    "title": "Launch your AI engineering career",
+    "brief": {
+      "file": "projects/portfolio-earning.md"
+    },
+    "checklist": [
+      "Profile README live: one-line positioning, 3–4 projects each with a number, links and a clear ask",
+      "4–6 pinned repos, each with a description, topics, and a README following problem → demo GIF → architecture → results → how to run",
+      "One-page portfolio site live (projects, services, contact) and linked from GitHub, LinkedIn and X",
+      "A 2-minute Loom demo recorded for each of your four projects",
+      "Upwork and/or Contra profile complete, with portfolio items and saved searches for RAG, chatbot, extraction and automation gigs",
+      "Two international payout methods set up and verified, with current fees checked",
+      "A proposal template and a fixed-price package (scope, deliverables, timeline, price) for your strongest gig type",
+      "A tracker (sheet or CSV) for pitches, applications, follow-ups and posts, updated weekly",
+      "40+ personalised pitches sent over 30 days (about 10 a week), with follow-ups",
+      "8+ build-in-public posts published over 30 days (2 a week on X and LinkedIn)",
+      "A one-page resume led by shipped projects, and 20+ tailored internship or junior applications sent",
+      "RAG system design practised out loud, timed, and a 30-day review written: numbers, what worked, next month's targets"
+    ],
+    "links": true
+  }
+}

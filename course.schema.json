@@ -1,0 +1,389 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Course pack (course.json)",
+  "description": "A course pack: one folder with this course.json plus its Markdown and code files. Load it by putting the folder in courses/. Any field typed 'text' may be an inline string or {\"file\": \"path/inside/pack\"}. Any object may be replaced by {\"include\": \"other.json\"}. Check a pack with: python3 server.py validate courses/<id>",
+  "type": "object",
+  "required": [
+    "id",
+    "title",
+    "sections"
+  ],
+  "properties": {
+    "format": {
+      "const": 1,
+      "description": "Pack format version. The engine refuses packs written for a format it doesn't read."
+    },
+    "id": {
+      "$ref": "#/$defs/id"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "$ref": "#/$defs/text"
+    },
+    "version": {
+      "type": "string",
+      "description": "This pack's own version, e.g. 1.2.0"
+    },
+    "author": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    },
+    "license": {
+      "type": "string",
+      "description": "Licence for the pack's own content, e.g. CC-BY-4.0 (linked videos and docs keep their owners' terms)"
+    },
+    "language": {
+      "enum": [
+        "python",
+        "javascript",
+        "typescript"
+      ],
+      "default": "python",
+      "description": "Default language of code exercises; a practice item can override it"
+    },
+    "requirements": {
+      "type": "object",
+      "description": "What learners need installed for the exercises",
+      "properties": {
+        "python": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "node": {
+          "type": "string",
+          "description": "e.g. >=24"
+        }
+      }
+    },
+    "features": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Switch interface features off for this pack (all default to true). Learners can also switch them off in Settings.",
+      "properties": {
+        "notes": {
+          "type": "boolean"
+        },
+        "timer": {
+          "type": "boolean"
+        },
+        "focusMode": {
+          "type": "boolean"
+        },
+        "studyStats": {
+          "type": "boolean"
+        },
+        "review": {
+          "type": "boolean"
+        }
+      }
+    },
+    "theme": {
+      "type": "object",
+      "properties": {
+        "accent": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$",
+          "description": "Default accent colour; learners can pick their own"
+        },
+        "css": {
+          "type": "string",
+          "description": "Add-on stylesheet in the pack, loaded after the platform's; override tokens like --accent, --radius, --font-body"
+        }
+      }
+    },
+    "support": {
+      "type": "string",
+      "description": "Folder in the pack added to PYTHONPATH when code runs (shared helpers, fakes for tests)"
+    },
+    "sections": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/section"
+          },
+          {
+            "$ref": "#/$defs/include"
+          }
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{0,63}$",
+      "description": "Unique across the whole course"
+    },
+    "text": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "required": [
+            "file"
+          ],
+          "properties": {
+            "file": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "include": {
+      "type": "object",
+      "required": [
+        "include"
+      ],
+      "properties": {
+        "include": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "section": {
+      "type": "object",
+      "required": [
+        "id",
+        "title"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "type": "string"
+        },
+        "summary": {
+          "$ref": "#/$defs/text"
+        },
+        "status": {
+          "enum": [
+            "ready",
+            "coming-soon"
+          ],
+          "default": "ready"
+        },
+        "lessons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/lesson"
+          }
+        },
+        "project": {
+          "$ref": "#/$defs/project"
+        }
+      }
+    },
+    "lesson": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "body"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "type": "string"
+        },
+        "duration": {
+          "type": "string",
+          "description": "Free text, e.g. '45 min'"
+        },
+        "videos": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "youtube": {
+                "type": "string",
+                "description": "YouTube video id"
+              },
+              "playlist": {
+                "type": "string",
+                "description": "YouTube playlist id"
+              },
+              "title": {
+                "type": "string"
+              },
+              "start": {
+                "type": "integer",
+                "description": "Start time in seconds"
+              }
+            }
+          }
+        },
+        "body": {
+          "$ref": "#/$defs/text",
+          "description": "The written lesson, in Markdown"
+        },
+        "resources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "title",
+              "url"
+            ],
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              }
+            }
+          }
+        },
+        "practice": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/code"
+              },
+              {
+                "$ref": "#/$defs/quiz"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "code": {
+      "type": "object",
+      "required": [
+        "id",
+        "type",
+        "title",
+        "prompt",
+        "starter",
+        "tests",
+        "solution"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "type": {
+          "const": "code"
+        },
+        "title": {
+          "type": "string"
+        },
+        "prompt": {
+          "$ref": "#/$defs/text"
+        },
+        "starter": {
+          "$ref": "#/$defs/text",
+          "description": "Python the learner starts from"
+        },
+        "tests": {
+          "$ref": "#/$defs/text",
+          "description": "Python: test_* functions, import with 'from solution import ...'. JavaScript/TypeScript: call test('name', fn) with node:assert; import from './solution.js' or './solution.ts'"
+        },
+        "solution": {
+          "$ref": "#/$defs/text",
+          "description": "Reference solution; must pass the tests"
+        },
+        "needs_api_key": {
+          "type": "boolean",
+          "description": "Shows a badge: Run may call a paid API"
+        },
+        "language": {
+          "enum": [
+            "python",
+            "javascript",
+            "typescript"
+          ],
+          "description": "Overrides the course language for this exercise"
+        }
+      }
+    },
+    "quiz": {
+      "type": "object",
+      "required": [
+        "id",
+        "type",
+        "question",
+        "options",
+        "answer"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "type": {
+          "const": "quiz"
+        },
+        "question": {
+          "$ref": "#/$defs/text"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 2
+        },
+        "answer": {
+          "type": "integer",
+          "description": "Index of the correct option"
+        },
+        "explanation": {
+          "$ref": "#/$defs/text"
+        }
+      }
+    },
+    "project": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "brief"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "type": "string"
+        },
+        "brief": {
+          "$ref": "#/$defs/text"
+        },
+        "checklist": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "links": {
+          "type": "boolean",
+          "description": "Show GitHub repo and live URL fields"
+        }
+      }
+    }
+  }
+}

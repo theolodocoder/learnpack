@@ -1,0 +1,758 @@
+{
+  "id": "backend-rag",
+  "title": "Backend & RAG",
+  "summary": "Weeks 3–4. FastAPI backends that serve Claude (async, streaming, errors), SQL and Postgres with pgvector, embeddings, chunking, a RAG pipeline built from scratch with citations, and better retrieval with hybrid search, reranking and evals. Project: a chat-with-your-docs API.",
+  "status": "ready",
+  "lessons": [
+    {
+      "id": "rag-fastapi-basics",
+      "title": "FastAPI fundamentals",
+      "duration": "75 min",
+      "videos": [
+        {
+          "youtube": "7AMjmCTumuo",
+          "title": "Corey Schafer: Python FastAPI Tutorial (Part 1): Getting Started"
+        },
+        {
+          "youtube": "SORiTsvnU28",
+          "title": "ArjanCodes: How to Use FastAPI: A Detailed Python Tutorial"
+        }
+      ],
+      "body": {
+        "file": "lessons/backend-rag/rag-fastapi-basics.md"
+      },
+      "resources": [
+        {
+          "title": "FastAPI docs: First steps",
+          "url": "https://fastapi.tiangolo.com/tutorial/first-steps/"
+        },
+        {
+          "title": "FastAPI docs: Request body",
+          "url": "https://fastapi.tiangolo.com/tutorial/body/"
+        },
+        {
+          "title": "FastAPI docs: Handling errors",
+          "url": "https://fastapi.tiangolo.com/tutorial/handling-errors/"
+        },
+        {
+          "title": "FastAPI docs: Dependencies",
+          "url": "https://fastapi.tiangolo.com/tutorial/dependencies/"
+        },
+        {
+          "title": "FastAPI docs: Testing",
+          "url": "https://fastapi.tiangolo.com/tutorial/testing/"
+        }
+      ],
+      "practice": [
+        {
+          "id": "rag-notes-api",
+          "type": "code",
+          "title": "A small notes API",
+          "prompt": {
+            "file": "practice/rag-notes-api/prompt.md"
+          },
+          "starter": {
+            "file": "practice/rag-notes-api/starter.py"
+          },
+          "tests": {
+            "file": "practice/rag-notes-api/tests.py"
+          },
+          "solution": {
+            "file": "practice/rag-notes-api/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "rag-api-key-dependency",
+          "type": "code",
+          "title": "Protect an endpoint with an API key dependency",
+          "prompt": {
+            "file": "practice/rag-api-key-dependency/prompt.md"
+          },
+          "starter": {
+            "file": "practice/rag-api-key-dependency/starter.py"
+          },
+          "tests": {
+            "file": "practice/rag-api-key-dependency/tests.py"
+          },
+          "solution": {
+            "file": "practice/rag-api-key-dependency/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "rag-quiz-why-backend",
+          "type": "quiz",
+          "question": "A teammate wants to call Claude directly from the website's JavaScript \"to save building a backend\". What's the main problem?",
+          "options": [
+            "Browsers can't make HTTPS requests to other domains",
+            "The API key would be shipped to every visitor, who could read it and use it",
+            "Claude only accepts requests from Python",
+            "Responses would be slower than through a backend"
+          ],
+          "answer": 1,
+          "explanation": "Anything sent to the browser can be read by the user, so the key would leak and anyone could spend your money. A backend keeps the key server-side and is also where validation, rate limits and prompts live."
+        },
+        {
+          "id": "rag-quiz-422",
+          "type": "quiz",
+          "question": "A client POSTs `{\"title\": \"\"}` to an endpoint whose body model has `title: str = Field(min_length=1)`. What happens?",
+          "options": [
+            "Your handler runs with an empty title",
+            "FastAPI returns 400 Bad Request",
+            "FastAPI returns 422 with details of the validation error, and your handler never runs",
+            "The server crashes with a 500"
+          ],
+          "answer": 2,
+          "explanation": "FastAPI validates the body against the Pydantic model before calling your function. Invalid input gets an automatic **422 Unprocessable Content** response describing which field failed."
+        }
+      ]
+    },
+    {
+      "id": "rag-fastapi-llm",
+      "title": "Serving Claude from FastAPI",
+      "duration": "75 min",
+      "videos": [
+        {
+          "youtube": "2JPDt-Jp6fM",
+          "title": "Corey Schafer: Python FastAPI Tutorial (Part 7): Sync vs Async"
+        }
+      ],
+      "body": {
+        "file": "lessons/backend-rag/rag-fastapi-llm.md"
+      },
+      "resources": [
+        {
+          "title": "FastAPI docs: Concurrency and async / await",
+          "url": "https://fastapi.tiangolo.com/async/"
+        },
+        {
+          "title": "FastAPI docs: Testing dependencies with overrides",
+          "url": "https://fastapi.tiangolo.com/advanced/testing-dependencies/"
+        },
+        {
+          "title": "FastAPI docs: Custom responses (StreamingResponse)",
+          "url": "https://fastapi.tiangolo.com/advanced/custom-response/"
+        },
+        {
+          "title": "FastAPI docs: Server-Sent Events",
+          "url": "https://fastapi.tiangolo.com/tutorial/server-sent-events/"
+        },
+        {
+          "title": "FastAPI docs: Settings and environment variables",
+          "url": "https://fastapi.tiangolo.com/advanced/settings/"
+        },
+        {
+          "title": "MDN: Using server-sent events",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events"
+        }
+      ],
+      "practice": [
+        {
+          "id": "rag-chat-endpoint",
+          "type": "code",
+          "title": "A /chat endpoint with error mapping",
+          "prompt": {
+            "file": "practice/rag-chat-endpoint/prompt.md"
+          },
+          "starter": {
+            "file": "practice/rag-chat-endpoint/starter.py"
+          },
+          "tests": {
+            "file": "practice/rag-chat-endpoint/tests.py"
+          },
+          "solution": {
+            "file": "practice/rag-chat-endpoint/solution.py"
+          },
+          "needs_api_key": true
+        },
+        {
+          "id": "rag-stream-sse",
+          "type": "code",
+          "title": "Stream Claude's answer as server-sent events",
+          "prompt": {
+            "file": "practice/rag-stream-sse/prompt.md"
+          },
+          "starter": {
+            "file": "practice/rag-stream-sse/starter.py"
+          },
+          "tests": {
+            "file": "practice/rag-stream-sse/tests.py"
+          },
+          "solution": {
+            "file": "practice/rag-stream-sse/solution.py"
+          },
+          "needs_api_key": true
+        },
+        {
+          "id": "rag-quiz-dependency-client",
+          "type": "quiz",
+          "question": "Why provide the Claude client through `Depends(get_client)` instead of a module-level `client = AsyncAnthropic()` used directly in the handler?",
+          "options": [
+            "Dependencies make the API call faster",
+            "Tests can replace it with a fake via `app.dependency_overrides`, so they run offline and free",
+            "FastAPI refuses to run handlers that use global variables",
+            "It creates a new client per request, which is required for async"
+          ],
+          "answer": 1,
+          "explanation": "Injecting the client means a test can swap in a fake with `app.dependency_overrides[get_client] = ...` and check exactly what was sent. With `lru_cache` on `get_client`, production still shares one client."
+        },
+        {
+          "id": "rag-quiz-stream-error",
+          "type": "quiz",
+          "question": "Your SSE endpoint has already sent ten text chunks when Claude returns an overloaded error. What should the endpoint do?",
+          "options": [
+            "Change the response status to 503",
+            "Raise `HTTPException(503)` from the generator",
+            "Send an error event inside the stream, then end it",
+            "Silently stop the stream"
+          ],
+          "answer": 2,
+          "explanation": "The status line and headers (200) went out with the first byte, so they can't be changed. The only way to tell the client is in-band: an `error` event, then the end-of-stream marker, so the front end can show that the answer is incomplete."
+        }
+      ]
+    },
+    {
+      "id": "rag-sql-postgres",
+      "title": "SQL and Postgres",
+      "duration": "75 min",
+      "videos": [
+        {
+          "youtube": "HXV3zeQKqGY",
+          "title": "freeCodeCamp: SQL Tutorial - Full Database Course for Beginners"
+        },
+        {
+          "youtube": "ciNHn38EyRc",
+          "title": "Computerphile: Running an SQL Injection Attack"
+        },
+        {
+          "youtube": "qw--VYLpxG4",
+          "title": "freeCodeCamp: Learn PostgreSQL Tutorial - Full Course for Beginners"
+        }
+      ],
+      "body": {
+        "file": "lessons/backend-rag/rag-sql-postgres.md"
+      },
+      "resources": [
+        {
+          "title": "Python docs: sqlite3",
+          "url": "https://docs.python.org/3/library/sqlite3.html"
+        },
+        {
+          "title": "PostgreSQL docs: Tutorial",
+          "url": "https://www.postgresql.org/docs/current/tutorial.html"
+        },
+        {
+          "title": "PostgreSQL docs: Transactions",
+          "url": "https://www.postgresql.org/docs/current/tutorial-transactions.html"
+        },
+        {
+          "title": "PostgreSQL docs: Indexes",
+          "url": "https://www.postgresql.org/docs/current/indexes.html"
+        },
+        {
+          "title": "psycopg 3: Basic module usage",
+          "url": "https://www.psycopg.org/psycopg3/docs/basic/usage.html"
+        },
+        {
+          "title": "pgvector on GitHub",
+          "url": "https://github.com/pgvector/pgvector"
+        },
+        {
+          "title": "OWASP: SQL Injection",
+          "url": "https://owasp.org/www-community/attacks/SQL_Injection"
+        }
+      ],
+      "practice": [
+        {
+          "id": "rag-sql-documents",
+          "type": "code",
+          "title": "Store and search documents safely with sqlite3",
+          "prompt": {
+            "file": "practice/rag-sql-documents/prompt.md"
+          },
+          "starter": {
+            "file": "practice/rag-sql-documents/starter.py"
+          },
+          "tests": {
+            "file": "practice/rag-sql-documents/tests.py"
+          },
+          "solution": {
+            "file": "practice/rag-sql-documents/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "rag-sql-chunks",
+          "type": "code",
+          "title": "Documents, chunks, JOINs and a transaction",
+          "prompt": {
+            "file": "practice/rag-sql-chunks/prompt.md"
+          },
+          "starter": {
+            "file": "practice/rag-sql-chunks/starter.py"
+          },
+          "tests": {
+            "file": "practice/rag-sql-chunks/tests.py"
+          },
+          "solution": {
+            "file": "practice/rag-sql-chunks/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "rag-quiz-sql-injection",
+          "type": "quiz",
+          "question": "Which line safely searches for a user-supplied `title` with sqlite3?",
+          "options": [
+            "`conn.execute(f\"SELECT * FROM docs WHERE title = '{title}'\")`",
+            "`conn.execute(\"SELECT * FROM docs WHERE title = '\" + title.replace(\"'\", \"\") + \"'\")`",
+            "`conn.execute(\"SELECT * FROM docs WHERE title = ?\", (title,))`",
+            "`conn.execute(\"SELECT * FROM docs WHERE title = '%s'\" % title)`"
+          ],
+          "answer": 2,
+          "explanation": "Only the placeholder version sends the value separately from the SQL, so the database can never treat it as code. Stripping quotes by hand breaks legitimate titles and misses other tricks; f-strings and `%` formatting are classic SQL injection."
+        },
+        {
+          "id": "rag-quiz-transaction",
+          "type": "quiz",
+          "question": "You insert a document row and then its 40 chunk rows, and the 31st chunk insert fails. With all the inserts inside `with conn:` in sqlite3, what's in the database afterwards?",
+          "options": [
+            "The document and 30 chunks",
+            "The document only",
+            "Nothing from this save: every insert in the block is rolled back",
+            "The document and all 40 chunks"
+          ],
+          "answer": 2,
+          "explanation": "`with conn:` is a transaction: it commits only if the whole block succeeds, and on an exception it rolls back everything done inside it. That's what keeps half-saved documents out of your database."
+        }
+      ]
+    },
+    {
+      "id": "rag-embeddings",
+      "title": "Embeddings and semantic search",
+      "duration": "70 min",
+      "videos": [
+        {
+          "youtube": "vlcQV4j2kTo",
+          "title": "Google Cloud Tech: What are text embeddings?"
+        },
+        {
+          "youtube": "YDdKiQNw80c",
+          "title": "Computerphile: Vector Search with LLMs"
+        },
+        {
+          "youtube": "gl1r1XV0SLw",
+          "title": "IBM Technology: What is a Vector Database?"
+        }
+      ],
+      "body": {
+        "file": "lessons/backend-rag/rag-embeddings.md"
+      },
+      "resources": [
+        {
+          "title": "Claude docs: Embeddings",
+          "url": "https://platform.claude.com/docs/en/build-with-claude/embeddings"
+        },
+        {
+          "title": "Voyage AI docs: Text embeddings",
+          "url": "https://docs.voyageai.com/docs/embeddings"
+        },
+        {
+          "title": "Sentence Transformers documentation",
+          "url": "https://sbert.net/"
+        },
+        {
+          "title": "MTEB embedding leaderboard",
+          "url": "https://huggingface.co/spaces/mteb/leaderboard"
+        }
+      ],
+      "practice": [
+        {
+          "id": "rag-semantic-search",
+          "type": "code",
+          "title": "Semantic search over a list of texts",
+          "prompt": {
+            "file": "practice/rag-semantic-search/prompt.md"
+          },
+          "starter": {
+            "file": "practice/rag-semantic-search/starter.py"
+          },
+          "tests": {
+            "file": "practice/rag-semantic-search/tests.py"
+          },
+          "solution": {
+            "file": "practice/rag-semantic-search/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "rag-embedding-cache",
+          "type": "code",
+          "title": "Batch and cache embeddings",
+          "prompt": {
+            "file": "practice/rag-embedding-cache/prompt.md"
+          },
+          "starter": {
+            "file": "practice/rag-embedding-cache/starter.py"
+          },
+          "tests": {
+            "file": "practice/rag-embedding-cache/tests.py"
+          },
+          "solution": {
+            "file": "practice/rag-embedding-cache/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "rag-quiz-mixed-models",
+          "type": "quiz",
+          "question": "You embedded your documents with `voyage-4` (1024 dimensions). To save money you now embed queries with a different 1024-dimension model. What happens?",
+          "options": [
+            "It works, because the dimensions match",
+            "Python raises a shape error",
+            "Search silently returns poor results: vectors from different models aren't comparable",
+            "Scores are just scaled by a constant"
+          ],
+          "answer": 2,
+          "explanation": "Each model has its own embedding space. Matching dimensions only means the dot product *runs*; the numbers no longer mean anything. Queries and documents must use the same model (and you re-embed everything when you switch)."
+        },
+        {
+          "id": "rag-quiz-normalised",
+          "type": "quiz",
+          "question": "All your embeddings are L2-normalised (length 1). Which is true?",
+          "options": [
+            "Cosine similarity equals the dot product, so `docs @ query` gives every score",
+            "Cosine similarity is always 1",
+            "You can no longer rank documents",
+            "You must use Euclidean distance instead"
+          ],
+          "answer": 0,
+          "explanation": "For unit vectors, `cos(a, b) = a · b / (‖a‖‖b‖) = a · b`. That's why vector stores normalise once at insert time and then score with a single matrix-vector product."
+        }
+      ]
+    },
+    {
+      "id": "rag-chunking",
+      "title": "Chunking documents",
+      "duration": "60 min",
+      "videos": [
+        {
+          "youtube": "ZTOtxiWb2bE",
+          "title": "Redis: Chunking Strategies Explained"
+        }
+      ],
+      "body": {
+        "file": "lessons/backend-rag/rag-chunking.md"
+      },
+      "resources": [
+        {
+          "title": "Anthropic: Contextual retrieval",
+          "url": "https://www.anthropic.com/news/contextual-retrieval"
+        },
+        {
+          "title": "pypdf on PyPI",
+          "url": "https://pypi.org/project/pypdf/"
+        },
+        {
+          "title": "PyMuPDF documentation",
+          "url": "https://pymupdf.readthedocs.io/en/latest/"
+        }
+      ],
+      "practice": [
+        {
+          "id": "rag-chunk-words",
+          "type": "code",
+          "title": "Fixed-size chunks with overlap",
+          "prompt": {
+            "file": "practice/rag-chunk-words/prompt.md"
+          },
+          "starter": {
+            "file": "practice/rag-chunk-words/starter.py"
+          },
+          "tests": {
+            "file": "practice/rag-chunk-words/tests.py"
+          },
+          "solution": {
+            "file": "practice/rag-chunk-words/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "rag-split-markdown",
+          "type": "code",
+          "title": "Structure-aware chunks with metadata",
+          "prompt": {
+            "file": "practice/rag-split-markdown/prompt.md"
+          },
+          "starter": {
+            "file": "practice/rag-split-markdown/starter.py"
+          },
+          "tests": {
+            "file": "practice/rag-split-markdown/tests.py"
+          },
+          "solution": {
+            "file": "practice/rag-split-markdown/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "rag-quiz-overlap",
+          "type": "quiz",
+          "question": "Why add overlap between fixed-size chunks?",
+          "options": [
+            "To make the index bigger, which improves accuracy",
+            "So text that straddles a chunk boundary appears whole in at least one chunk",
+            "Embedding models require it",
+            "To remove duplicate sentences"
+          ],
+          "answer": 1,
+          "explanation": "Fixed-size cuts land mid-idea. Repeating the end of one chunk at the start of the next means a sentence split by a boundary still appears complete somewhere. The cost is a little extra storage and embedding."
+        },
+        {
+          "id": "rag-quiz-chunk-size",
+          "type": "quiz",
+          "question": "You embed each 30-page policy document as a single chunk. What's the most likely effect on a question about one specific rule?",
+          "options": [
+            "Better retrieval, because each chunk has more context",
+            "The vector blends many topics, so it matches the specific question weakly, and the prompt is huge if it's retrieved",
+            "No effect: embeddings capture every detail regardless of length",
+            "The embedding model refuses long inputs, so nothing is indexed"
+          ],
+          "answer": 1,
+          "explanation": "One vector summarising 30 pages is a blur of every topic in it. Chunks of a few hundred words, each about one thing, match specific questions far more precisely and keep prompts small. (Some models also silently truncate long inputs.)"
+        }
+      ]
+    },
+    {
+      "id": "rag-from-scratch",
+      "title": "RAG from scratch",
+      "duration": "90 min",
+      "videos": [
+        {
+          "youtube": "sVcwVQRHIc8",
+          "title": "freeCodeCamp: Learn RAG From Scratch (watch after you've built your own)"
+        }
+      ],
+      "body": {
+        "file": "lessons/backend-rag/rag-from-scratch.md"
+      },
+      "resources": [
+        {
+          "title": "pgvector on GitHub",
+          "url": "https://github.com/pgvector/pgvector"
+        },
+        {
+          "title": "pgvector Docker image",
+          "url": "https://hub.docker.com/r/pgvector/pgvector"
+        },
+        {
+          "title": "Claude docs: Citations",
+          "url": "https://platform.claude.com/docs/en/build-with-claude/citations"
+        },
+        {
+          "title": "Claude docs: Embeddings",
+          "url": "https://platform.claude.com/docs/en/build-with-claude/embeddings"
+        }
+      ],
+      "practice": [
+        {
+          "id": "rag-vector-store",
+          "type": "code",
+          "title": "An in-memory vector store",
+          "prompt": {
+            "file": "practice/rag-vector-store/prompt.md"
+          },
+          "starter": {
+            "file": "practice/rag-vector-store/starter.py"
+          },
+          "tests": {
+            "file": "practice/rag-vector-store/tests.py"
+          },
+          "solution": {
+            "file": "practice/rag-vector-store/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "rag-build-prompt",
+          "type": "code",
+          "title": "Build the RAG prompt",
+          "prompt": {
+            "file": "practice/rag-build-prompt/prompt.md"
+          },
+          "starter": {
+            "file": "practice/rag-build-prompt/starter.py"
+          },
+          "tests": {
+            "file": "practice/rag-build-prompt/tests.py"
+          },
+          "solution": {
+            "file": "practice/rag-build-prompt/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "rag-answer",
+          "type": "code",
+          "title": "Answer questions with citations (or say \"I don't know\")",
+          "prompt": {
+            "file": "practice/rag-answer/prompt.md"
+          },
+          "starter": {
+            "file": "practice/rag-answer/starter.py"
+          },
+          "tests": {
+            "file": "practice/rag-answer/tests.py"
+          },
+          "solution": {
+            "file": "practice/rag-answer/solution.py"
+          },
+          "needs_api_key": true
+        },
+        {
+          "id": "rag-quiz-threshold",
+          "type": "quiz",
+          "question": "Why check a minimum similarity score before calling Claude in a RAG app?",
+          "options": [
+            "Top-k always returns k chunks, even when none is relevant; below the threshold you can say \"I don't know\" without an API call",
+            "Claude rejects prompts containing low-scoring chunks",
+            "It makes the embedding model more accurate",
+            "It's needed for the HNSW index to work"
+          ],
+          "answer": 0,
+          "explanation": "Retrieval always returns *something*. Without a threshold, an off-topic question gets irrelevant chunks and the model either answers from general knowledge or stretches them. A calibrated threshold gives an honest, free, instant \"I don't know\"."
+        },
+        {
+          "id": "rag-quiz-pgvector-op",
+          "type": "quiz",
+          "question": "In pgvector, `ORDER BY embedding <=> %s LIMIT 5` returns...",
+          "options": [
+            "the 5 chunks with the largest cosine distance",
+            "the 5 chunks most similar to the query vector (smallest cosine distance)",
+            "5 random chunks",
+            "the 5 chunks with the longest text"
+          ],
+          "answer": 1,
+          "explanation": "`<=>` is cosine distance, which is `1 − cosine similarity`. Ascending order puts the smallest distance, the most similar chunk, first. An HNSW index built with `vector_cosine_ops` speeds up exactly this query."
+        }
+      ]
+    },
+    {
+      "id": "rag-better-retrieval",
+      "title": "Better retrieval",
+      "duration": "80 min",
+      "videos": [
+        {
+          "youtube": "kT7nXO32L-Q",
+          "title": "freeCodeCamp: PostgreSQL Hybrid Search Course: Keyword (BM25) + Vector Retrieval"
+        }
+      ],
+      "body": {
+        "file": "lessons/backend-rag/rag-better-retrieval.md"
+      },
+      "resources": [
+        {
+          "title": "PostgreSQL docs: Full text search",
+          "url": "https://www.postgresql.org/docs/current/textsearch.html"
+        },
+        {
+          "title": "Voyage AI docs: Rerankers",
+          "url": "https://docs.voyageai.com/docs/reranker"
+        },
+        {
+          "title": "pgvector on GitHub (filtering and hybrid search)",
+          "url": "https://github.com/pgvector/pgvector"
+        },
+        {
+          "title": "Anthropic: Contextual retrieval",
+          "url": "https://www.anthropic.com/news/contextual-retrieval"
+        }
+      ],
+      "practice": [
+        {
+          "id": "rag-rrf",
+          "type": "code",
+          "title": "Hybrid search with reciprocal rank fusion",
+          "prompt": {
+            "file": "practice/rag-rrf/prompt.md"
+          },
+          "starter": {
+            "file": "practice/rag-rrf/starter.py"
+          },
+          "tests": {
+            "file": "practice/rag-rrf/tests.py"
+          },
+          "solution": {
+            "file": "practice/rag-rrf/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "rag-retrieval-eval",
+          "type": "code",
+          "title": "Measure retrieval: recall@k and MRR",
+          "prompt": {
+            "file": "practice/rag-retrieval-eval/prompt.md"
+          },
+          "starter": {
+            "file": "practice/rag-retrieval-eval/starter.py"
+          },
+          "tests": {
+            "file": "practice/rag-retrieval-eval/tests.py"
+          },
+          "solution": {
+            "file": "practice/rag-retrieval-eval/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "rag-quiz-rrf",
+          "type": "quiz",
+          "question": "Why does reciprocal rank fusion combine *ranks* instead of adding the vector and BM25 scores?",
+          "options": [
+            "Ranks are faster to compute",
+            "The two kinds of score are on different, incomparable scales, so adding them is meaningless",
+            "BM25 scores are always zero",
+            "Scores aren't available from pgvector"
+          ],
+          "answer": 1,
+          "explanation": "Cosine similarity sits between −1 and 1; BM25 scores are unbounded and depend on the corpus. Ranks are comparable across any retriever, so `Σ 1/(60 + rank)` fuses them fairly."
+        },
+        {
+          "id": "rag-quiz-recall",
+          "type": "quiz",
+          "question": "A golden question has 2 relevant chunks. Your search returns `[x, a, y, z, b]`, where `a` and `b` are the relevant ones. What are recall@3 and the reciprocal rank?",
+          "options": [
+            "recall@3 = 1.0, RR = 1.0",
+            "recall@3 = 0.5, RR = 0.5",
+            "recall@3 = 0.5, RR = 0.2",
+            "recall@3 = 0.33, RR = 0.5"
+          ],
+          "answer": 1,
+          "explanation": "In the top 3 (`x, a, y`) only `a` of the 2 relevant chunks appears: recall@3 = 1/2. The first relevant result is at rank 2, so the reciprocal rank is 1/2."
+        }
+      ]
+    }
+  ],
+  "project": {
+    "id": "rag-project",
+    "title": "Chat with your docs API",
+    "brief": {
+      "file": "projects/backend-rag.md"
+    },
+    "checklist": [
+      "FastAPI app with `/health`, `/documents` (upload, list, delete) and `/ask`, using Pydantic request and response models with limits",
+      "Postgres + pgvector in Docker via `docker-compose.yml`: `vector` column, HNSW index, `<=>` search, placeholders everywhere",
+      "Ingestion that cleans, chunks with metadata (document, position, heading) and embeds in batches with a real embedding model",
+      "`/ask` answers from retrieved chunks in XML tags and returns cited sources (only ids that were actually retrieved)",
+      "A calibrated similarity threshold that returns \"I don't know\" without calling Claude, with the value explained in the README",
+      "Claude client, embedder and store injected with `Depends`; LLM errors mapped to 503/502/504; `X-API-Key` required",
+      "Offline test suite (fake Claude, fake embedder, in-memory store, `TestClient`) that passes with no keys and no database",
+      "A golden set of 15+ questions with recall@5 and MRR reported in the README",
+      "Deployed to Railway or Render (or similar) with a public URL and a working `curl` example in the README",
+      "Repo on GitHub with `.env` git-ignored, a `.env.example`, and setup instructions"
+    ],
+    "links": true
+  }
+}

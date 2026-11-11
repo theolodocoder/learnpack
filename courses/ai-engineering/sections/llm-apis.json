@@ -1,0 +1,641 @@
+{
+  "id": "llm-apis",
+  "title": "LLM APIs & Prompting",
+  "summary": "Week 2. How LLMs work, calling Claude from Python, streaming, prompt engineering, structured output with Pydantic, tool calling, and retries and cost tracking. Project: a document extractor.",
+  "status": "ready",
+  "lessons": [
+    {
+      "id": "llm-how-llms-work",
+      "title": "How LLMs work",
+      "duration": "60 min",
+      "videos": [
+        {
+          "youtube": "wjZofJX0v4M",
+          "title": "3Blue1Brown: Transformers, the tech behind LLMs"
+        },
+        {
+          "youtube": "zjkBMFhNj_g",
+          "title": "Andrej Karpathy: Intro to Large Language Models"
+        }
+      ],
+      "body": {
+        "file": "lessons/llm-apis/llm-how-llms-work.md"
+      },
+      "resources": [
+        {
+          "title": "Claude docs: Glossary",
+          "url": "https://platform.claude.com/docs/en/about-claude/glossary"
+        },
+        {
+          "title": "Claude docs: Models overview",
+          "url": "https://platform.claude.com/docs/en/models/overview"
+        },
+        {
+          "title": "Claude docs: Token counting",
+          "url": "https://platform.claude.com/docs/en/build-with-claude/token-counting"
+        }
+      ],
+      "practice": [
+        {
+          "id": "llm-trim-history",
+          "type": "code",
+          "title": "Trim a conversation to fit the context window",
+          "prompt": {
+            "file": "practice/llm-trim-history/prompt.md"
+          },
+          "starter": {
+            "file": "practice/llm-trim-history/starter.py"
+          },
+          "tests": {
+            "file": "practice/llm-trim-history/tests.py"
+          },
+          "solution": {
+            "file": "practice/llm-trim-history/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "llm-quiz-stateless",
+          "type": "quiz",
+          "question": "Your chatbot answers the first question well, but on the follow-up *\"and what about the second one?\"* it has no idea what you mean. What's the most likely cause?",
+          "options": [
+            "The model's context window is full",
+            "Your app didn't resend the earlier messages with the new request",
+            "The model's weights were reset between requests",
+            "The model needs a higher temperature"
+          ],
+          "answer": 1,
+          "explanation": "The API is **stateless**: each request stands alone and the model only sees what's in it. Follow-ups work only if your code sends the earlier turns again. Weights never change during inference, and one exchange is nowhere near filling a context window."
+        },
+        {
+          "id": "llm-quiz-tokens",
+          "type": "quiz",
+          "question": "Roughly how many tokens is a 2,000-word English document?",
+          "options": [
+            "About 500",
+            "About 2,000",
+            "About 2,700",
+            "About 8,000"
+          ],
+          "answer": 2,
+          "explanation": "A token is about ¾ of an English word (≈ 4 characters), so 2,000 words ≈ 2,000 ÷ 0.75 ≈ 2,700 tokens. Use `client.messages.count_tokens` when you need the exact number."
+        }
+      ]
+    },
+    {
+      "id": "llm-first-api-call",
+      "title": "Your first API call",
+      "duration": "75 min",
+      "videos": [],
+      "body": {
+        "file": "lessons/llm-apis/llm-first-api-call.md"
+      },
+      "resources": [
+        {
+          "title": "Claude docs: Get started",
+          "url": "https://platform.claude.com/docs/en/get-started"
+        },
+        {
+          "title": "Claude docs: Using the Messages API",
+          "url": "https://platform.claude.com/docs/en/build-with-claude/working-with-messages"
+        },
+        {
+          "title": "Claude API reference: Messages",
+          "url": "https://platform.claude.com/docs/en/api/messages"
+        },
+        {
+          "title": "Claude docs: Pricing",
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing"
+        },
+        {
+          "title": "Anthropic Python SDK on GitHub",
+          "url": "https://github.com/anthropics/anthropic-sdk-python"
+        },
+        {
+          "title": "python-dotenv on PyPI",
+          "url": "https://pypi.org/project/python-dotenv/"
+        }
+      ],
+      "practice": [
+        {
+          "id": "llm-build-messages",
+          "type": "code",
+          "title": "Build the messages list for a multi-turn chat",
+          "prompt": {
+            "file": "practice/llm-build-messages/prompt.md"
+          },
+          "starter": {
+            "file": "practice/llm-build-messages/starter.py"
+          },
+          "tests": {
+            "file": "practice/llm-build-messages/tests.py"
+          },
+          "solution": {
+            "file": "practice/llm-build-messages/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "llm-chat-once",
+          "type": "code",
+          "title": "One turn of a chat with Claude",
+          "prompt": {
+            "file": "practice/llm-chat-once/prompt.md"
+          },
+          "starter": {
+            "file": "practice/llm-chat-once/starter.py"
+          },
+          "tests": {
+            "file": "practice/llm-chat-once/tests.py"
+          },
+          "solution": {
+            "file": "practice/llm-chat-once/solution.py"
+          },
+          "needs_api_key": true
+        },
+        {
+          "id": "llm-cost-calculator",
+          "type": "code",
+          "title": "Cost of a request",
+          "prompt": {
+            "file": "practice/llm-cost-calculator/prompt.md"
+          },
+          "starter": {
+            "file": "practice/llm-cost-calculator/starter.py"
+          },
+          "tests": {
+            "file": "practice/llm-cost-calculator/tests.py"
+          },
+          "solution": {
+            "file": "practice/llm-cost-calculator/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "llm-quiz-stop-reason",
+          "type": "quiz",
+          "question": "A response comes back with `stop_reason == \"max_tokens\"`. What does that tell you?",
+          "options": [
+            "You sent more input tokens than the model allows",
+            "The answer was cut off because it reached your `max_tokens` limit",
+            "You've used up your monthly token quota",
+            "The model finished its answer normally"
+          ],
+          "answer": 1,
+          "explanation": "`max_tokens` caps the **output**. Hitting it means the reply stopped mid-answer. Raise the limit or ask for shorter output, and never ship a truncated answer as if it were complete."
+        },
+        {
+          "id": "llm-quiz-cost",
+          "type": "quiz",
+          "question": "A call to `claude-sonnet-5-5` uses 10,000 input tokens and 2,000 output tokens. Sonnet 5.5 costs $2 per 1M input tokens and $10 per 1M output tokens. What does the call cost?",
+          "options": [
+            "$0.012",
+            "$0.04",
+            "$0.12",
+            "$0.024"
+          ],
+          "answer": 1,
+          "explanation": "Input: 10,000 · $2 / 1,000,000 = $0.02. Output: 2,000 · $10 / 1,000,000 = $0.02. Total **$0.04**. Output tokens are 5× the price of input here, so 2,000 output tokens cost as much as 10,000 input tokens."
+        }
+      ]
+    },
+    {
+      "id": "llm-streaming",
+      "title": "Streaming responses",
+      "duration": "45 min",
+      "videos": [],
+      "body": {
+        "file": "lessons/llm-apis/llm-streaming.md"
+      },
+      "resources": [
+        {
+          "title": "Claude docs: Streaming messages",
+          "url": "https://platform.claude.com/docs/en/build-with-claude/streaming"
+        },
+        {
+          "title": "Python docs: Generators (yield expressions)",
+          "url": "https://docs.python.org/3/reference/expressions.html#yield-expressions"
+        }
+      ],
+      "practice": [
+        {
+          "id": "llm-stream-chunks",
+          "type": "code",
+          "title": "Collect a streamed reply",
+          "prompt": {
+            "file": "practice/llm-stream-chunks/prompt.md"
+          },
+          "starter": {
+            "file": "practice/llm-stream-chunks/starter.py"
+          },
+          "tests": {
+            "file": "practice/llm-stream-chunks/tests.py"
+          },
+          "solution": {
+            "file": "practice/llm-stream-chunks/solution.py"
+          },
+          "needs_api_key": true
+        },
+        {
+          "id": "llm-stream-generator",
+          "type": "code",
+          "title": "Wrap a stream in a generator",
+          "prompt": {
+            "file": "practice/llm-stream-generator/prompt.md"
+          },
+          "starter": {
+            "file": "practice/llm-stream-generator/starter.py"
+          },
+          "tests": {
+            "file": "practice/llm-stream-generator/tests.py"
+          },
+          "solution": {
+            "file": "practice/llm-stream-generator/solution.py"
+          },
+          "needs_api_key": true
+        },
+        {
+          "id": "llm-quiz-streaming",
+          "type": "quiz",
+          "question": "What does switching from `messages.create` to `messages.stream` improve for a chat user?",
+          "options": [
+            "The total time to generate the full answer",
+            "The time until the first words appear on screen",
+            "The cost per token",
+            "The accuracy of the answer"
+          ],
+          "answer": 1,
+          "explanation": "The model generates at the same speed either way, and the price and output are the same. Streaming sends tokens as they're produced, so the user starts reading within a second or two instead of waiting for the whole answer."
+        }
+      ]
+    },
+    {
+      "id": "llm-prompting",
+      "title": "Prompt engineering for developers",
+      "duration": "75 min",
+      "videos": [
+        {
+          "youtube": "8ib4Qnh2HFE",
+          "title": "Full AI Prompting Course with Andrew Ng (DeepLearningAI)"
+        }
+      ],
+      "body": {
+        "file": "lessons/llm-apis/llm-prompting.md"
+      },
+      "resources": [
+        {
+          "title": "Claude docs: Prompt engineering overview",
+          "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview"
+        },
+        {
+          "title": "Claude docs: Prompting best practices",
+          "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices"
+        },
+        {
+          "title": "Claude docs: Effort",
+          "url": "https://platform.claude.com/docs/en/build-with-claude/effort"
+        }
+      ],
+      "practice": [
+        {
+          "id": "llm-prompt-template",
+          "type": "code",
+          "title": "Prompt templates as Python functions",
+          "prompt": {
+            "file": "practice/llm-prompt-template/prompt.md"
+          },
+          "starter": {
+            "file": "practice/llm-prompt-template/starter.py"
+          },
+          "tests": {
+            "file": "practice/llm-prompt-template/tests.py"
+          },
+          "solution": {
+            "file": "practice/llm-prompt-template/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "llm-classify-eval",
+          "type": "code",
+          "title": "Classify, then measure your prompt",
+          "prompt": {
+            "file": "practice/llm-classify-eval/prompt.md"
+          },
+          "starter": {
+            "file": "practice/llm-classify-eval/starter.py"
+          },
+          "tests": {
+            "file": "practice/llm-classify-eval/tests.py"
+          },
+          "solution": {
+            "file": "practice/llm-classify-eval/solution.py"
+          },
+          "needs_api_key": true
+        },
+        {
+          "id": "llm-quiz-xml-tags",
+          "type": "quiz",
+          "question": "Why wrap a customer email in `<email>...</email>` tags inside your prompt?",
+          "options": [
+            "The API requires XML for any text longer than a paragraph",
+            "It separates the data from your instructions, so the model can tell them apart and you can refer to it clearly",
+            "It makes the request cheaper because tags are free tokens",
+            "It stops the model from reading the email"
+          ],
+          "answer": 1,
+          "explanation": "Tags are just text (they cost tokens like anything else) and the API doesn't require them. They make boundaries explicit: the model knows exactly what's data and what's instructions, which also makes it harder for text inside the email to be mistaken for instructions."
+        },
+        {
+          "id": "llm-quiz-specific-prompt",
+          "type": "quiz",
+          "question": "Your prompt *\"Summarise this report\"* gives summaries that vary wildly in length and focus. What's the best first fix?",
+          "options": [
+            "Run the same prompt several times and pick the best output",
+            "Say who the summary is for, what it must cover, the format, and a word limit",
+            "Switch to a bigger model",
+            "Add \"Be accurate\" to the end of the prompt"
+          ],
+          "answer": 1,
+          "explanation": "The model fills every unstated decision itself, differently each time. Stating audience, content, format and length removes those choices. A bigger model given the same vague prompt still has to guess."
+        }
+      ]
+    },
+    {
+      "id": "llm-structured-output",
+      "title": "Structured output with Pydantic",
+      "duration": "60 min",
+      "videos": [],
+      "body": {
+        "file": "lessons/llm-apis/llm-structured-output.md"
+      },
+      "resources": [
+        {
+          "title": "Claude docs: Structured outputs",
+          "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs"
+        },
+        {
+          "title": "Pydantic docs: JSON Schema",
+          "url": "https://docs.pydantic.dev/latest/concepts/json_schema/"
+        },
+        {
+          "title": "Pydantic docs: Models",
+          "url": "https://docs.pydantic.dev/latest/concepts/models/"
+        }
+      ],
+      "practice": [
+        {
+          "id": "llm-extract-invoice",
+          "type": "code",
+          "title": "Extract an invoice into a Pydantic model",
+          "prompt": {
+            "file": "practice/llm-extract-invoice/prompt.md"
+          },
+          "starter": {
+            "file": "practice/llm-extract-invoice/starter.py"
+          },
+          "tests": {
+            "file": "practice/llm-extract-invoice/tests.py"
+          },
+          "solution": {
+            "file": "practice/llm-extract-invoice/solution.py"
+          },
+          "needs_api_key": true
+        },
+        {
+          "id": "llm-json-schema-output",
+          "type": "code",
+          "title": "Raw JSON schema output, with a retry",
+          "prompt": {
+            "file": "practice/llm-json-schema-output/prompt.md"
+          },
+          "starter": {
+            "file": "practice/llm-json-schema-output/starter.py"
+          },
+          "tests": {
+            "file": "practice/llm-json-schema-output/tests.py"
+          },
+          "solution": {
+            "file": "practice/llm-json-schema-output/solution.py"
+          },
+          "needs_api_key": true
+        },
+        {
+          "id": "llm-quiz-optional-field",
+          "type": "quiz",
+          "question": "You're extracting CVs. Many CVs don't list a phone number. Which field type should `phone` have in your Pydantic model?",
+          "options": [
+            "`phone: str`",
+            "`phone: str | None`",
+            "`phone: int`",
+            "Leave `phone` out and parse it with a regex later"
+          ],
+          "answer": 1,
+          "explanation": "A required `str` forces the model to produce *something*, and it may invent a plausible number. `str | None` lets it honestly return `null` when the CV doesn't say. Phone numbers aren't integers either: leading zeros and `+234` would be lost."
+        }
+      ]
+    },
+    {
+      "id": "llm-tool-calling",
+      "title": "Tool calling",
+      "duration": "75 min",
+      "videos": [],
+      "body": {
+        "file": "lessons/llm-apis/llm-tool-calling.md"
+      },
+      "resources": [
+        {
+          "title": "Claude docs: Tool use overview",
+          "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview"
+        },
+        {
+          "title": "Claude docs: Define tools",
+          "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools"
+        },
+        {
+          "title": "Claude docs: Handle tool calls",
+          "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls"
+        },
+        {
+          "title": "Claude docs: Strict tool use",
+          "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use"
+        }
+      ],
+      "practice": [
+        {
+          "id": "llm-calculator-tool",
+          "type": "code",
+          "title": "Define a calculator tool, and don't trust its input",
+          "prompt": {
+            "file": "practice/llm-calculator-tool/prompt.md"
+          },
+          "starter": {
+            "file": "practice/llm-calculator-tool/starter.py"
+          },
+          "tests": {
+            "file": "practice/llm-calculator-tool/tests.py"
+          },
+          "solution": {
+            "file": "practice/llm-calculator-tool/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "llm-tool-loop",
+          "type": "code",
+          "title": "The tool-calling loop",
+          "prompt": {
+            "file": "practice/llm-tool-loop/prompt.md"
+          },
+          "starter": {
+            "file": "practice/llm-tool-loop/starter.py"
+          },
+          "tests": {
+            "file": "practice/llm-tool-loop/tests.py"
+          },
+          "solution": {
+            "file": "practice/llm-tool-loop/solution.py"
+          },
+          "needs_api_key": true
+        },
+        {
+          "id": "llm-quiz-parallel-tools",
+          "type": "quiz",
+          "question": "Claude's reply contains two `tool_use` blocks (weather for Lagos and for Accra). How do you send the results back?",
+          "options": [
+            "Two separate user messages, one `tool_result` each",
+            "One user message containing both `tool_result` blocks, each with its matching `tool_use_id`",
+            "One assistant message containing both results",
+            "Run only the first tool; Claude will ask for the second one next turn"
+          ],
+          "answer": 1,
+          "explanation": "After appending the assistant turn, send **one** user message with a `tool_result` for every `tool_use` in that turn, matched by `tool_use_id`. Splitting them breaks the alternating roles and confuses the model."
+        },
+        {
+          "id": "llm-quiz-strict-tools",
+          "type": "quiz",
+          "question": "You set `\"strict\": True` on a `send_refund` tool. What does that guarantee?",
+          "options": [
+            "The refund amount will be correct",
+            "The tool input matches your schema (types, required fields, no extra keys), but you still need to check the values make sense",
+            "The model will always call the tool",
+            "The tool can't be triggered by prompt injection"
+          ],
+          "answer": 1,
+          "explanation": "Strict mode guarantees **shape**, not **safety**. The amount will be a number, but it could still be the wrong number or for the wrong customer. Validate meaning, scope access to the current user, and require human approval for anything irreversible."
+        }
+      ]
+    },
+    {
+      "id": "llm-errors-retries-cost",
+      "title": "Errors, retries and cost control",
+      "duration": "60 min",
+      "videos": [],
+      "body": {
+        "file": "lessons/llm-apis/llm-errors-retries-cost.md"
+      },
+      "resources": [
+        {
+          "title": "Claude docs: API errors",
+          "url": "https://platform.claude.com/docs/en/api/errors"
+        },
+        {
+          "title": "Claude docs: Rate limits",
+          "url": "https://platform.claude.com/docs/en/api/rate-limits"
+        },
+        {
+          "title": "Claude docs: Token counting",
+          "url": "https://platform.claude.com/docs/en/build-with-claude/token-counting"
+        },
+        {
+          "title": "Claude docs: Pricing",
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing"
+        }
+      ],
+      "practice": [
+        {
+          "id": "llm-call-with-retry",
+          "type": "code",
+          "title": "Retry with exponential backoff and jitter",
+          "prompt": {
+            "file": "practice/llm-call-with-retry/prompt.md"
+          },
+          "starter": {
+            "file": "practice/llm-call-with-retry/starter.py"
+          },
+          "tests": {
+            "file": "practice/llm-call-with-retry/tests.py"
+          },
+          "solution": {
+            "file": "practice/llm-call-with-retry/solution.py"
+          },
+          "needs_api_key": true
+        },
+        {
+          "id": "llm-cost-tracker",
+          "type": "code",
+          "title": "Track spend per request and per day",
+          "prompt": {
+            "file": "practice/llm-cost-tracker/prompt.md"
+          },
+          "starter": {
+            "file": "practice/llm-cost-tracker/starter.py"
+          },
+          "tests": {
+            "file": "practice/llm-cost-tracker/tests.py"
+          },
+          "solution": {
+            "file": "practice/llm-cost-tracker/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "llm-quiz-retryable",
+          "type": "quiz",
+          "question": "Which of these failed requests is worth retrying automatically?",
+          "options": [
+            "400 Bad Request",
+            "401 Unauthorized",
+            "529 Overloaded",
+            "404 Not Found"
+          ],
+          "answer": 2,
+          "explanation": "529 means the API is temporarily overloaded: wait and retry. 400, 401 and 404 mean something is wrong with your request, key or model name; the same request will fail again, so fix the code instead."
+        },
+        {
+          "id": "llm-quiz-jitter",
+          "type": "quiz",
+          "question": "Why add random jitter to exponential backoff delays?",
+          "options": [
+            "It makes each retry cheaper",
+            "So many clients that failed at the same moment don't all retry at the same moment and fail together again",
+            "The API rejects retries that arrive at exact intervals",
+            "It lets you retry 400 errors safely"
+          ],
+          "answer": 1,
+          "explanation": "Without jitter, every client that hit a rate limit at time *t* retries at exactly *t + 1 s*, *t + 3 s* and so on, creating synchronised spikes. Randomness spreads the retries out so they succeed."
+        }
+      ]
+    }
+  ],
+  "project": {
+    "id": "llm-project",
+    "title": "Document extractor",
+    "brief": {
+      "file": "projects/llm-apis.md"
+    },
+    "checklist": [
+      "Pydantic models for at least two document types (e.g. `Invoice` and `CV`), with descriptions, enums and optional fields",
+      "Single-document extraction with `messages.parse` and the text wrapped in XML tags",
+      "A business-rule check (e.g. line items add up to the total) that flags failures for review",
+      "Batch mode with `AsyncAnthropic`, `asyncio.gather` and a `Semaphore` limiting concurrency",
+      "Retries on 429/5xx with exponential backoff and jitter, and no retries on 400",
+      "One JSON file per document plus a summary file in `out/`",
+      "A cost report: documents, successes, failures, tokens, total and per-document cost",
+      "Offline tests with a fake client covering extraction, retries, concurrency and cost",
+      "README with setup, usage, sample output, and measured cost per document",
+      "Repo on GitHub with `.env` git-ignored and a `.env.example`"
+    ],
+    "links": true
+  }
+}

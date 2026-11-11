@@ -1,0 +1,16 @@
+[project]
+name = "learnpack"
+version = "1.0.0"
+description = "A local, Udacity-style learning platform that runs course packs: lessons, videos, runnable exercises with hidden tests, notes, projects and study tools."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [{ name = "Promise Okafor" }]
+# The platform itself uses only the Python standard library.
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/theolodocoder/learnpack"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

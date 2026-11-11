@@ -1,0 +1,8 @@
+# Packages the AI Engineering course's exercises use (the platform itself needs none).
+# Install once: uv venv && uv pip install -r requirements.txt   (or: python3 -m venv .venv && .venv/bin/pip install -r requirements.txt)
+anthropic
+pydantic
+httpx
+numpy
+python-dotenv
+fastapi

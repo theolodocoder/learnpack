@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install exercise packages
+        run: pip install -r requirements.txt pytest
+
+      - name: Platform tests
+        run: python -m pytest -q
+
+      - name: Study logic tests
+        run: node --test tests/study.test.js
+
+      - name: Validate every course pack (runs every reference solution)
+        run: |
+          for pack in courses/*/; do
+            echo "::group::$pack"
+            python server.py validate "$pack" | tail -n 3
+            status=${PIPESTATUS[0]}
+            echo "::endgroup::"
+            [ "$status" -eq 0 ] || { python server.py validate "$pack" | grep -v '^✓'; exit 1; }
+          done

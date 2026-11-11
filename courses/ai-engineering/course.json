@@ -1,0 +1,59 @@
+{
+  "format": 1,
+  "id": "ai-engineering",
+  "title": "AI Engineering",
+  "description": "Go from rusty Python to shipping LLM-powered products: APIs, RAG, agents, evals and deployment. Three months to build, month four to earn.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Promise Okafor"
+  },
+  "license": "CC-BY-4.0",
+  "language": "python",
+  "requirements": {
+    "python": [
+      "anthropic",
+      "pydantic",
+      "httpx",
+      "numpy",
+      "python-dotenv",
+      "fastapi"
+    ]
+  },
+  "features": {
+    "notes": true,
+    "timer": true,
+    "focusMode": true,
+    "studyStats": true,
+    "review": true
+  },
+  "theme": {
+    "accent": "#E2401C"
+  },
+  "support": "support",
+  "sections": [
+    {
+      "include": "sections/python-for-ai.json"
+    },
+    {
+      "include": "sections/llm-apis.json"
+    },
+    {
+      "include": "sections/backend-rag.json"
+    },
+    {
+      "include": "sections/agents-evals.json"
+    },
+    {
+      "include": "sections/shipping.json"
+    },
+    {
+      "include": "sections/capstone.json"
+    },
+    {
+      "include": "sections/portfolio-earning.json"
+    },
+    {
+      "include": "sections/maths.json"
+    }
+  ]
+}

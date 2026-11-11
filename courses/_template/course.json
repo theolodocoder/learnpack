@@ -1,0 +1,67 @@
+{
+  "format": 1,
+  "id": "my-course",
+  "title": "My Course",
+  "description": "Copy this folder to courses/<your-course-id>/ and edit. Any text or code field can be inline or {\"file\": \"path/in/pack\"}.",
+  "version": "1.0.0",
+  "author": { "name": "Your Name", "url": "https://example.com" },
+  "license": "CC-BY-4.0",
+  "language": "python",
+  "requirements": { "python": [], "node": ">=24" },
+  "features": { "notes": true, "timer": true, "focusMode": true, "studyStats": true, "review": true },
+  "theme": { "accent": "#E4471B", "css": "theme.css" },
+  "sections": [
+    {
+      "id": "getting-started",
+      "title": "Getting Started",
+      "summary": "A tiny section showing every feature.",
+      "status": "ready",
+      "lessons": [
+        {
+          "id": "first-lesson",
+          "title": "Your first lesson",
+          "duration": "10 min",
+          "videos": [{ "youtube": "wjZofJX0v4M", "title": "Example video" }],
+          "body": "# Hello\n\nLessons are **Markdown**.\n\n```python\nprint('code blocks get highlighted')\n```",
+          "resources": [{ "title": "Python tutorial", "url": "https://docs.python.org/3/tutorial/" }],
+          "practice": [
+            {
+              "id": "add-two",
+              "type": "code",
+              "title": "Add two numbers (Python)",
+              "prompt": "Write `add(a, b)` that returns the sum.",
+              "starter": "def add(a, b):\n    pass\n",
+              "tests": "from solution import add\n\ndef test_small():\n    assert add(2, 3) == 5\n\ndef test_negative():\n    assert add(-1, 1) == 0\n",
+              "solution": "def add(a, b):\n    return a + b\n"
+            },
+            {
+              "id": "add-two-ts",
+              "type": "code",
+              "language": "typescript",
+              "title": "Add two numbers (TypeScript)",
+              "prompt": "Export `add(a, b)` that returns the sum. JavaScript and TypeScript exercises run on Node 24.",
+              "starter": "export function add(a: number, b: number): number {\n  return 0;\n}\n",
+              "tests": "import assert from \"node:assert/strict\";\nimport { add } from \"./solution.ts\";\n\ntest(\"adds small numbers\", () => {\n  assert.equal(add(2, 3), 5);\n});\n\ntest(\"handles negatives\", () => {\n  assert.equal(add(-1, 1), 0);\n});\n",
+              "solution": "export function add(a: number, b: number): number {\n  return a + b;\n}\n"
+            },
+            {
+              "id": "first-quiz",
+              "type": "quiz",
+              "question": "Which file describes a course?",
+              "options": ["index.html", "course.json", "server.py"],
+              "answer": 1,
+              "explanation": "Everything about a course lives in its pack's course.json."
+            }
+          ]
+        }
+      ],
+      "project": {
+        "id": "first-project",
+        "title": "Make your own course",
+        "brief": "Write a course pack about something you want to learn.",
+        "checklist": ["Copy the template", "Write one lesson", "Run `python3 server.py validate courses/<id>`"],
+        "links": false
+      }
+    }
+  ]
+}

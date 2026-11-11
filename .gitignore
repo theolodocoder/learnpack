@@ -1,0 +1,28 @@
+# Your own learning data: progress, notes, saved code
+learner-data/
+
+# Secrets
+.env
+
+# Python / tooling
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+uv.lock
+
+# OS / editors
+.DS_Store
+.claude/
+.vscode/
+.idea/
+
+# Personal and internal working notes (not part of the project)
+ROADMAP.md
+docs/superpowers/
+docs/content-brief.md
+docs/frontend-brief.md
+
+# Paid / unreleased course packs (kept locally, not published)
+courses/frontend-senior/
+docs/frontend-research.md

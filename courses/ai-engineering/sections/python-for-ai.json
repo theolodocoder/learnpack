@@ -1,0 +1,774 @@
+{
+  "id": "python-for-ai",
+  "title": "Python for AI",
+  "status": "ready",
+  "summary": "Week 1. A fast refresher for rusty Python plus the features AI code relies on: Pydantic, generators, decorators, async and httpx, with tests. Project: an async API client.",
+  "lessons": [
+    {
+      "id": "py-welcome-setup",
+      "title": "Welcome and setup",
+      "duration": "40 min",
+      "videos": [
+        {
+          "youtube": "AMdG7IjgSPM",
+          "title": "Corey Schafer: UV, a faster all-in-one package manager"
+        },
+        {
+          "youtube": "Kg1Yvry_Ydk",
+          "title": "Corey Schafer: virtual environments with venv"
+        }
+      ],
+      "body": {
+        "file": "lessons/python-for-ai/py-welcome-setup.md"
+      },
+      "resources": [
+        {
+          "title": "uv docs: Python environments",
+          "url": "https://docs.astral.sh/uv/pip/environments/"
+        },
+        {
+          "title": "python-dotenv on PyPI",
+          "url": "https://pypi.org/project/python-dotenv/"
+        }
+      ],
+      "practice": [
+        {
+          "id": "py-warmup-word-count",
+          "type": "code",
+          "title": "Warm-up: count words",
+          "prompt": {
+            "file": "practice/py-warmup-word-count/prompt.md"
+          },
+          "starter": {
+            "file": "practice/py-warmup-word-count/starter.py"
+          },
+          "tests": {
+            "file": "practice/py-warmup-word-count/tests.py"
+          },
+          "solution": {
+            "file": "practice/py-warmup-word-count/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "py-quiz-setup-keys",
+          "type": "quiz",
+          "question": "Where should your `ANTHROPIC_API_KEY` live while you develop?",
+          "options": [
+            "Hard-coded in the script, so it always works",
+            "In a `.env` file at the repo root that is listed in `.gitignore`",
+            "In `requirements.txt`, next to the `anthropic` package",
+            "In a comment at the top of `solution.py`"
+          ],
+          "answer": 1,
+          "explanation": "Keys are secrets. A git-ignored `.env` file keeps them out of your code and out of Git; `load_dotenv()` copies them into `os.environ`, where the SDK reads `ANTHROPIC_API_KEY`."
+        },
+        {
+          "id": "py-quiz-run-vs-check",
+          "type": "quiz",
+          "question": "What does the **Check** button do?",
+          "options": [
+            "Runs your file as a script and shows what it prints",
+            "Sends your code to Claude for review",
+            "Runs hidden offline tests that import your code from `solution.py` and assert on the results",
+            "Installs the packages your code imports"
+          ],
+          "answer": 2,
+          "explanation": "**Run** executes your file like `python solution.py`. **Check** runs `test_*` functions that import your functions and compare their results to the expected values. It never calls a real API."
+        }
+      ]
+    },
+    {
+      "id": "py-refresher",
+      "title": "Modern Python essentials",
+      "duration": "75 min",
+      "videos": [
+        {
+          "youtube": "3dt4OGnU5sM",
+          "title": "Corey Schafer: comprehensions"
+        },
+        {
+          "youtube": "vRVVyl9uaZc",
+          "title": "ArjanCodes: data classes"
+        },
+        {
+          "youtube": "NIWwJbo-9_8",
+          "title": "Corey Schafer: try/except blocks for error handling"
+        }
+      ],
+      "body": {
+        "file": "lessons/python-for-ai/py-refresher.md"
+      },
+      "resources": [
+        {
+          "title": "Python tutorial: data structures and comprehensions",
+          "url": "https://docs.python.org/3/tutorial/datastructures.html"
+        },
+        {
+          "title": "Python docs: dataclasses",
+          "url": "https://docs.python.org/3/library/dataclasses.html"
+        },
+        {
+          "title": "Python tutorial: errors and exceptions",
+          "url": "https://docs.python.org/3/tutorial/errors.html"
+        },
+        {
+          "title": "Python docs: __main__",
+          "url": "https://docs.python.org/3/library/__main__.html"
+        },
+        {
+          "title": "Python docs: pathlib",
+          "url": "https://docs.python.org/3/library/pathlib.html"
+        },
+        {
+          "title": "Python docs: json",
+          "url": "https://docs.python.org/3/library/json.html"
+        }
+      ],
+      "practice": [
+        {
+          "id": "py-parse-messages",
+          "type": "code",
+          "title": "Parse a chat history",
+          "prompt": {
+            "file": "practice/py-parse-messages/prompt.md"
+          },
+          "starter": {
+            "file": "practice/py-parse-messages/starter.py"
+          },
+          "tests": {
+            "file": "practice/py-parse-messages/tests.py"
+          },
+          "solution": {
+            "file": "practice/py-parse-messages/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "py-load-config",
+          "type": "code",
+          "title": "Load a config file safely",
+          "prompt": {
+            "file": "practice/py-load-config/prompt.md"
+          },
+          "starter": {
+            "file": "practice/py-load-config/starter.py"
+          },
+          "tests": {
+            "file": "practice/py-load-config/tests.py"
+          },
+          "solution": {
+            "file": "practice/py-load-config/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "py-quiz-main-guard",
+          "type": "quiz",
+          "question": "`tools.py` ends with `if __name__ == \"__main__\": print(demo())`. What happens when another file runs `import tools`?",
+          "options": [
+            "`demo()` runs and prints, because importing runs the whole file",
+            "Nothing is printed: on import, `__name__` is `\"tools\"`, so the block is skipped",
+            "An `ImportError` is raised",
+            "`demo()` runs but its output is hidden"
+          ],
+          "answer": 1,
+          "explanation": "Importing does run the module's top-level code, but `__name__` is then the module name (`\"tools\"`), not `\"__main__\"`. Only `python tools.py` runs the guarded block."
+        },
+        {
+          "id": "py-quiz-raise-from",
+          "type": "quiz",
+          "question": "Why write `raise ConfigError(\"bad config\") from err` inside an `except` block?",
+          "options": [
+            "It retries the operation that failed",
+            "It hides the original error from the traceback",
+            "It raises a clear, specific error for callers while keeping the original exception attached as the cause",
+            "It is required syntax for custom exceptions"
+          ],
+          "answer": 2,
+          "explanation": "`from err` chains the exceptions: callers catch your clear `ConfigError`, and the traceback still shows the underlying `JSONDecodeError` for debugging."
+        }
+      ]
+    },
+    {
+      "id": "py-type-hints-pydantic",
+      "title": "Type hints and Pydantic",
+      "duration": "80 min",
+      "videos": [
+        {
+          "youtube": "RwH2UzC2rIo",
+          "title": "Corey Schafer: type hints, from basic annotations to generics"
+        },
+        {
+          "youtube": "502XOB0u8OY",
+          "title": "ArjanCodes: why Python needs Pydantic for real applications"
+        }
+      ],
+      "body": {
+        "file": "lessons/python-for-ai/py-type-hints-pydantic.md"
+      },
+      "resources": [
+        {
+          "title": "Python docs: typing",
+          "url": "https://docs.python.org/3/library/typing.html"
+        },
+        {
+          "title": "Pydantic docs: Models",
+          "url": "https://docs.pydantic.dev/latest/concepts/models/"
+        },
+        {
+          "title": "Pydantic docs: Fields",
+          "url": "https://docs.pydantic.dev/latest/concepts/fields/"
+        },
+        {
+          "title": "Pydantic docs: JSON Schema",
+          "url": "https://docs.pydantic.dev/latest/concepts/json_schema/"
+        }
+      ],
+      "practice": [
+        {
+          "id": "py-validate-user",
+          "type": "code",
+          "title": "Validate user records",
+          "prompt": {
+            "file": "practice/py-validate-user/prompt.md"
+          },
+          "starter": {
+            "file": "practice/py-validate-user/starter.py"
+          },
+          "tests": {
+            "file": "practice/py-validate-user/tests.py"
+          },
+          "solution": {
+            "file": "practice/py-validate-user/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "py-tool-schema",
+          "type": "code",
+          "title": "Turn a model into a tool definition",
+          "prompt": {
+            "file": "practice/py-tool-schema/prompt.md"
+          },
+          "starter": {
+            "file": "practice/py-tool-schema/starter.py"
+          },
+          "tests": {
+            "file": "practice/py-tool-schema/tests.py"
+          },
+          "solution": {
+            "file": "practice/py-tool-schema/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "py-quiz-pydantic-coerce",
+          "type": "quiz",
+          "question": "Given `class Item(BaseModel): qty: int = Field(ge=1)`, what does `Item.model_validate({\"qty\": \"3\"})` do?",
+          "options": [
+            "Raises `ValidationError` because `\"3\"` is a string",
+            "Returns `Item(qty=3)`: the string is converted to an int and passes `ge=1`",
+            "Returns `Item(qty='3')` unchanged",
+            "Raises `TypeError`"
+          ],
+          "answer": 1,
+          "explanation": "Pydantic's default (lax) mode converts values that unambiguously represent the target type, so `\"3\"` becomes `3`. `\"three\"` or `0` would raise a `ValidationError`."
+        },
+        {
+          "id": "py-quiz-json-schema",
+          "type": "quiz",
+          "question": "Why does `model_json_schema()` matter for LLM work?",
+          "options": [
+            "It makes the model run faster",
+            "It's the format LLM APIs use to describe structured outputs and tool inputs, so one Pydantic class can define the schema and validate the reply",
+            "It encrypts the data before sending it",
+            "It's only used for generating documentation"
+          ],
+          "answer": 1,
+          "explanation": "Claude's structured output and tool `input_schema` are JSON Schemas. Generating them from a Pydantic model keeps the schema, your types and your validation in one place."
+        }
+      ]
+    },
+    {
+      "id": "py-iterators-generators",
+      "title": "Iterators and generators",
+      "duration": "60 min",
+      "videos": [
+        {
+          "youtube": "jTYiNjvnHZY",
+          "title": "Corey Schafer: iterators and iterables"
+        },
+        {
+          "youtube": "bD05uGo_sVI",
+          "title": "Corey Schafer: generators"
+        }
+      ],
+      "body": {
+        "file": "lessons/python-for-ai/py-iterators-generators.md"
+      },
+      "resources": [
+        {
+          "title": "Python docs: itertools",
+          "url": "https://docs.python.org/3/library/itertools.html"
+        },
+        {
+          "title": "Python HOWTO: functional programming (iterators and generators)",
+          "url": "https://docs.python.org/3/howto/functional.html"
+        }
+      ],
+      "practice": [
+        {
+          "id": "py-batched",
+          "type": "code",
+          "title": "Batch items lazily",
+          "prompt": {
+            "file": "practice/py-batched/prompt.md"
+          },
+          "starter": {
+            "file": "practice/py-batched/starter.py"
+          },
+          "tests": {
+            "file": "practice/py-batched/tests.py"
+          },
+          "solution": {
+            "file": "practice/py-batched/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "py-stream-pipeline",
+          "type": "code",
+          "title": "A streaming pipeline",
+          "prompt": {
+            "file": "practice/py-stream-pipeline/prompt.md"
+          },
+          "starter": {
+            "file": "practice/py-stream-pipeline/starter.py"
+          },
+          "tests": {
+            "file": "practice/py-stream-pipeline/tests.py"
+          },
+          "solution": {
+            "file": "practice/py-stream-pipeline/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "py-quiz-exhausted",
+          "type": "quiz",
+          "question": "```python\nit = (n * 2 for n in range(3))\nprint(sum(it))\nprint(sum(it))\n```\nWhat does this print?",
+          "options": [
+            "`6` then `6`",
+            "`6` then `0`",
+            "`6` then an error",
+            "`0` then `6`"
+          ],
+          "answer": 1,
+          "explanation": "A generator is an iterator, and iterators are used up after one pass. The first `sum` consumes every item; the second sees an empty iterator, and `sum` of nothing is `0`."
+        }
+      ]
+    },
+    {
+      "id": "py-decorators-context-managers",
+      "title": "Decorators and context managers",
+      "duration": "70 min",
+      "videos": [
+        {
+          "youtube": "FsAPt_9Bf3U",
+          "title": "Corey Schafer: decorators"
+        },
+        {
+          "youtube": "KlBPCzcQNU8",
+          "title": "Corey Schafer: decorators with arguments"
+        },
+        {
+          "youtube": "-aKFBoZpiqA",
+          "title": "Corey Schafer: context managers"
+        }
+      ],
+      "body": {
+        "file": "lessons/python-for-ai/py-decorators-context-managers.md"
+      },
+      "resources": [
+        {
+          "title": "Python docs: functools (wraps, lru_cache)",
+          "url": "https://docs.python.org/3/library/functools.html"
+        },
+        {
+          "title": "Python docs: contextlib",
+          "url": "https://docs.python.org/3/library/contextlib.html"
+        }
+      ],
+      "practice": [
+        {
+          "id": "py-retry-decorator",
+          "type": "code",
+          "title": "A retry decorator with backoff",
+          "prompt": {
+            "file": "practice/py-retry-decorator/prompt.md"
+          },
+          "starter": {
+            "file": "practice/py-retry-decorator/starter.py"
+          },
+          "tests": {
+            "file": "practice/py-retry-decorator/tests.py"
+          },
+          "solution": {
+            "file": "practice/py-retry-decorator/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "py-timer-context",
+          "type": "code",
+          "title": "A timer context manager",
+          "prompt": {
+            "file": "practice/py-timer-context/prompt.md"
+          },
+          "starter": {
+            "file": "practice/py-timer-context/starter.py"
+          },
+          "tests": {
+            "file": "practice/py-timer-context/tests.py"
+          },
+          "solution": {
+            "file": "practice/py-timer-context/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "py-quiz-wraps",
+          "type": "quiz",
+          "question": "What goes wrong if a decorator's wrapper doesn't use `@functools.wraps(func)`?",
+          "options": [
+            "The decorated function can no longer be called",
+            "The function runs twice",
+            "The decorated function reports the wrapper's name and docstring (e.g. `__name__ == \"wrapper\"`), confusing logs, debuggers and frameworks",
+            "Exceptions inside the function are swallowed"
+          ],
+          "answer": 2,
+          "explanation": "Without `wraps`, the name `f` now points at `wrapper`, so its metadata is the wrapper's. `functools.wraps` copies `__name__`, `__doc__` and more from the original."
+        },
+        {
+          "id": "py-quiz-what-to-retry",
+          "type": "quiz",
+          "question": "Your retry decorator wraps an LLM API call. Which errors should it retry?",
+          "options": [
+            "Every exception, to be safe",
+            "Only 400 Bad Request",
+            "429 rate limits and 5xx/529 server errors, but not 400 or 401",
+            "None: retries are never a good idea"
+          ],
+          "answer": 2,
+          "explanation": "429 and 5xx are temporary and often succeed after a short wait. A 400 or 401 means the request or key is wrong and will fail identically every time, so retrying wastes time and money."
+        }
+      ]
+    },
+    {
+      "id": "py-async",
+      "title": "Async Python",
+      "duration": "80 min",
+      "videos": [
+        {
+          "youtube": "oAkLSJNr5zY",
+          "title": "Corey Schafer: AsyncIO, a complete guide with animations"
+        },
+        {
+          "youtube": "ftmdDlwMwwQ",
+          "title": "mCoding: intro to async Python (writing a web crawler)"
+        }
+      ],
+      "body": {
+        "file": "lessons/python-for-ai/py-async.md"
+      },
+      "resources": [
+        {
+          "title": "Python docs: coroutines and tasks",
+          "url": "https://docs.python.org/3/library/asyncio-task.html"
+        },
+        {
+          "title": "Python docs: asyncio synchronization (Semaphore)",
+          "url": "https://docs.python.org/3/library/asyncio-sync.html"
+        }
+      ],
+      "practice": [
+        {
+          "id": "py-map-limited",
+          "type": "code",
+          "title": "Run async work with a concurrency limit",
+          "prompt": {
+            "file": "practice/py-map-limited/prompt.md"
+          },
+          "starter": {
+            "file": "practice/py-map-limited/starter.py"
+          },
+          "tests": {
+            "file": "practice/py-map-limited/tests.py"
+          },
+          "solution": {
+            "file": "practice/py-map-limited/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "py-gather-settled",
+          "type": "code",
+          "title": "Survive slow and failing calls",
+          "prompt": {
+            "file": "practice/py-gather-settled/prompt.md"
+          },
+          "starter": {
+            "file": "practice/py-gather-settled/starter.py"
+          },
+          "tests": {
+            "file": "practice/py-gather-settled/tests.py"
+          },
+          "solution": {
+            "file": "practice/py-gather-settled/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "py-quiz-blocking",
+          "type": "quiz",
+          "question": "Three coroutines each call `time.sleep(1)` and are run with `asyncio.gather`. About how long does it take?",
+          "options": [
+            "About 1 second, because gather runs them concurrently",
+            "About 3 seconds, because `time.sleep` blocks the event loop so nothing else can run",
+            "It raises an error",
+            "Instantly, because sleeping is skipped in async code"
+          ],
+          "answer": 1,
+          "explanation": "The event loop only switches tasks at an `await`. `time.sleep` never awaits, so each call freezes everything. Use `await asyncio.sleep(1)` and it takes about 1 second."
+        },
+        {
+          "id": "py-quiz-semaphore",
+          "type": "quiz",
+          "question": "What does `asyncio.Semaphore(5)` with `async with sem:` around each API call achieve?",
+          "options": [
+            "Makes each call 5 times faster",
+            "Retries each call up to 5 times",
+            "Ensures at most 5 calls are in progress at once, while the rest wait their turn",
+            "Runs the calls in 5 separate processes"
+          ],
+          "answer": 2,
+          "explanation": "A semaphore holds 5 permits. Each task takes one on entering the block and returns it on leaving, capping concurrency to avoid rate limits."
+        }
+      ]
+    },
+    {
+      "id": "py-http-json",
+      "title": "HTTP and JSON with httpx",
+      "duration": "75 min",
+      "videos": [
+        {
+          "youtube": "tb8gHvYlCFs",
+          "title": "Corey Schafer: HTTP requests with the requests library (httpx's API is nearly identical)"
+        }
+      ],
+      "body": {
+        "file": "lessons/python-for-ai/py-http-json.md"
+      },
+      "resources": [
+        {
+          "title": "HTTPX: QuickStart",
+          "url": "https://www.python-httpx.org/quickstart/"
+        },
+        {
+          "title": "HTTPX: Async support",
+          "url": "https://www.python-httpx.org/async/"
+        },
+        {
+          "title": "HTTPX: Timeouts",
+          "url": "https://www.python-httpx.org/advanced/timeouts/"
+        },
+        {
+          "title": "HTTPX: Transports (MockTransport)",
+          "url": "https://www.python-httpx.org/advanced/transports/"
+        },
+        {
+          "title": "MDN: HTTP response status codes",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status"
+        }
+      ],
+      "practice": [
+        {
+          "id": "py-get-json",
+          "type": "code",
+          "title": "Fetch JSON with httpx",
+          "prompt": {
+            "file": "practice/py-get-json/prompt.md"
+          },
+          "starter": {
+            "file": "practice/py-get-json/starter.py"
+          },
+          "tests": {
+            "file": "practice/py-get-json/tests.py"
+          },
+          "solution": {
+            "file": "practice/py-get-json/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "py-make-client",
+          "type": "code",
+          "title": "A configured client from the environment",
+          "prompt": {
+            "file": "practice/py-make-client/prompt.md"
+          },
+          "starter": {
+            "file": "practice/py-make-client/starter.py"
+          },
+          "tests": {
+            "file": "practice/py-make-client/tests.py"
+          },
+          "solution": {
+            "file": "practice/py-make-client/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "py-quiz-status",
+          "type": "quiz",
+          "question": "`response = client.get(\"/users/9\")` returns a 404. What has httpx done?",
+          "options": [
+            "Raised `httpx.HTTPStatusError` automatically",
+            "Returned a normal response with `status_code == 404`; it only raises if you call `response.raise_for_status()`",
+            "Returned `None`",
+            "Retried the request three times"
+          ],
+          "answer": 1,
+          "explanation": "httpx treats any response as a successful exchange. Call `raise_for_status()` (or check `status_code`) to turn 4xx/5xx into an error."
+        },
+        {
+          "id": "py-quiz-mock-transport",
+          "type": "quiz",
+          "question": "Why do the HTTP exercises take an `httpx.Client` as a parameter instead of creating one inside?",
+          "options": [
+            "It makes requests faster",
+            "So tests can pass a client backed by `httpx.MockTransport` and run offline, while real code passes a normal client",
+            "httpx requires it",
+            "To avoid needing a base URL"
+          ],
+          "answer": 1,
+          "explanation": "Injecting the client means the same function works with the real network in production and a mock transport in tests: fast, free and deterministic."
+        }
+      ]
+    },
+    {
+      "id": "py-testing-project",
+      "title": "Testing, then the week 1 build",
+      "duration": "120 min",
+      "videos": [
+        {
+          "youtube": "cHYq1MRoyI0",
+          "title": "freeCodeCamp: Pytest tutorial, how to test Python code"
+        },
+        {
+          "youtube": "ULxMQ57engo",
+          "title": "ArjanCodes: how to write unit tests for existing Python code"
+        }
+      ],
+      "body": {
+        "file": "lessons/python-for-ai/py-testing-project.md"
+      },
+      "resources": [
+        {
+          "title": "pytest: Get started",
+          "url": "https://docs.pytest.org/en/stable/getting-started.html"
+        },
+        {
+          "title": "HTTPX: Transports (MockTransport)",
+          "url": "https://www.python-httpx.org/advanced/transports/"
+        }
+      ],
+      "practice": [
+        {
+          "id": "py-test-slugify",
+          "type": "code",
+          "title": "Write tests that catch bugs",
+          "prompt": {
+            "file": "practice/py-test-slugify/prompt.md"
+          },
+          "starter": {
+            "file": "practice/py-test-slugify/starter.py"
+          },
+          "tests": {
+            "file": "practice/py-test-slugify/tests.py"
+          },
+          "solution": {
+            "file": "practice/py-test-slugify/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "py-project-fetch-one",
+          "type": "code",
+          "title": "Project part 1: fetch and validate one resource",
+          "prompt": {
+            "file": "practice/py-project-fetch-one/prompt.md"
+          },
+          "starter": {
+            "file": "practice/py-project-fetch-one/starter.py"
+          },
+          "tests": {
+            "file": "practice/py-project-fetch-one/tests.py"
+          },
+          "solution": {
+            "file": "practice/py-project-fetch-one/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "py-project-fetch-all",
+          "type": "code",
+          "title": "Project part 2: fetch many and save a report",
+          "prompt": {
+            "file": "practice/py-project-fetch-all/prompt.md"
+          },
+          "starter": {
+            "file": "practice/py-project-fetch-all/starter.py"
+          },
+          "tests": {
+            "file": "practice/py-project-fetch-all/tests.py"
+          },
+          "solution": {
+            "file": "practice/py-project-fetch-all/solution.py"
+          },
+          "needs_api_key": false
+        },
+        {
+          "id": "py-quiz-good-test",
+          "type": "quiz",
+          "question": "Which test is most likely to catch a bug in `slugify`?",
+          "options": [
+            "`assert slugify(\"Hello World\")`",
+            "`assert isinstance(slugify(\"Hello World\"), str)`",
+            "`assert slugify(\"  Hello,  World! \") == \"hello-world\"`",
+            "`assert slugify(\"\") is not None`"
+          ],
+          "answer": 2,
+          "explanation": "It compares against an exact expected value and uses an input with edge cases (extra spaces, punctuation, capitals). The others pass for almost any implementation that returns a string."
+        }
+      ]
+    }
+  ],
+  "project": {
+    "id": "py-project",
+    "title": "Week 1 build: an async API client",
+    "brief": {
+      "file": "projects/python-for-ai.md"
+    },
+    "checklist": [
+      "All three practice items in **Testing, then the week 1 build** pass Check",
+      "Code moved into its own GitHub repo with a venv and `requirements.txt`",
+      "`python client.py` fetches 20+ real URLs with a concurrency limit and writes `report.json`, including at least one failure",
+      "Base URL and concurrency limit come from environment variables; `.env.example` committed, `.env` git-ignored",
+      "`pytest` passes offline, using `httpx.MockTransport` (success, 404, network error, bad JSON, wrong shape, concurrency limit)",
+      "`README.md` explains what it does and how to install, run and test it"
+    ],
+    "links": false
+  }
+}
