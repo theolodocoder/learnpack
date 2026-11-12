@@ -80,7 +80,7 @@ python3 server.py
 | **☰** | Hide or show the course outline |
 | **Course title ▾** | Switch between installed courses |
 | **● 25:00** | Focus timer (Pomodoro): click to start, pause or change lengths |
-| **⛶** | Focus mode: only the lesson stays on screen. Press **F** to toggle, **Esc** to leave |
+| **⛶** | Focus mode: full screen. Press **F** to toggle, **Esc** to leave. Use **☰** to hide the outline too |
 | **Notes** | Your notes for this lesson. **‹ Notes** lists all notes, with search |
 | **◐** | Switch between system, light and dark mode |
 | **↻ Review** | Quiz questions you missed, due for another try |

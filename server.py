@@ -291,7 +291,8 @@ def main():
     except OSError:
         if already_running(url):  # double-clicked again: reuse the running app
             print(f"Already running at {url}")
-            webbrowser.open(url)
+            if not a.no_browser:
+                webbrowser.open(url)
             return
         sys.exit(f"Port {a.port} is busy with something else. Try: python3 server.py --port 8001")
     print(f"Learning platform running at {url}\nKeep this window open while you study. Close it (or press Ctrl+C) to stop.")

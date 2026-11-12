@@ -81,7 +81,7 @@ course
 |---|---|
 | `notes` | The notes drawer (Apple Notes-style), per lesson and free-standing. |
 | `timer` | The Pomodoro focus timer in the top bar. |
-| `focusMode` | Focus mode (the F key): hides everything except the lesson. |
+| `focusMode` | Focus mode (the F key or the ⛶ button): puts the browser in full screen. |
 | `studyStats` | The dashboard's Today panel: study time, daily goal, streak and week chart. |
 | `review` | The review queue: missed quiz questions come back on later days. |
 

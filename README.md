@@ -74,7 +74,7 @@ The full walkthrough, including API keys for the AI course and troubleshooting, 
 | **Practice** | Code exercises in Python, JavaScript or TypeScript: **Run** shows your output, **Check** runs hidden tests and reports each one as passed or failed, **Show solution** reveals the answer. Plus multiple-choice quizzes with explanations |
 | **Projects** | A project per section, with a brief, a tickable checklist, and fields for your repo and live URL |
 | **Notes** | An Apple Notes-style drawer: rich text, checklists, headings, search, one note per lesson plus free notes |
-| **Focus** | A Pomodoro timer in the top bar, and focus mode (press **F**) that hides everything but the lesson |
+| **Focus** | A Pomodoro timer in the top bar, and focus mode (press **F**) to go full screen |
 | **Progress** | Mark lessons done, see progress per section, pick up where you left off |
 | **Study stats** | Minutes studied today against a daily goal, a day streak and a 7-day chart |
 | **Review** | Quiz questions you miss come back 1, 3, 7 and 14 days later until you've learned them |

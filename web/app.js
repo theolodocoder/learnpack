@@ -631,6 +631,8 @@ function renderProject(sid) {
 // ---------- study & focus ----------
 
 // Focus mode: only the lesson stays on screen. F toggles, Esc leaves.
+// Focus mode puts the browser in full screen and leaves the interface as it is. Browsers only allow
+// full screen from a click or key press, so it starts from the button or F, never on page load.
 const Focus = {
   on: false,
   set(on) {
@@ -638,9 +640,13 @@ const Focus = {
     document.body.classList.toggle("focus-mode", on);
     $("#focus-btn").setAttribute("aria-pressed", String(on));
     $("#focus-btn").title = on ? "Leave focus mode (F or Esc)" : "Focus mode (F)";
-    store.set("focusMode", on ? "1" : "");
+    const full = !!document.fullscreenElement;
+    if (on && !full) document.documentElement.requestFullscreen?.().catch(() => {});  // still focus mode if refused
+    if (!on && full) document.exitFullscreen?.().catch(() => {});
   },
 };
+// Leaving full screen with the browser's own Esc also leaves focus mode, so the two stay in sync.
+document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement && Focus.on) Focus.set(false); });
 $("#focus-btn").onclick = () => Focus.set(!Focus.on);
 const typing = (t) => t.closest?.("input, textarea, select, [contenteditable='true'], .CodeMirror");
 document.addEventListener("keydown", (e) => {
@@ -648,7 +654,6 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "f" || e.key === "F") { e.preventDefault(); Focus.set(!Focus.on); }
   if (e.key === "Escape" && Focus.on) Focus.set(false);
 });
-if (store.get("focusMode")) Focus.set(true);
 
 // Focus timer (Pomodoro). Runs off a wall-clock end time, so it survives page changes and reloads.
 const Timer = {

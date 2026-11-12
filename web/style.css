@@ -388,13 +388,8 @@ button.side-section-head:hover { background: var(--sunken); }
 .study-toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 60; padding: 12px 18px; border-radius: var(--radius);
   background: var(--ink); color: var(--bg); font-weight: 500; box-shadow: var(--shadow); animation: pop-in .2s ease; }
 
-/* Focus mode: the lesson and nothing else */
+/* Focus mode: full screen, with the interface unchanged (☰ still hides the sidebar if wanted) */
 #focus-btn[aria-pressed="true"] { color: var(--accent); background: var(--accent-soft); }
-body.focus-mode .sidebar, body.focus-mode #notes, body.focus-mode .topbar-progress, body.focus-mode #notes-btn,
-body.focus-mode #menu-btn { display: none !important; }
-body.focus-mode .main { padding-top: 56px; }
-body.focus-mode .page { max-width: 720px; }
-body.focus-mode .topbar { background: color-mix(in srgb, var(--bg) 85%, transparent); border-bottom-color: transparent; backdrop-filter: blur(8px); }
 
 /* Sidebar review link */
 .review-link { margin-bottom: 12px; font-weight: 600; padding-left: 10px; }
