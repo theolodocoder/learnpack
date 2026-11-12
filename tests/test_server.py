@@ -85,3 +85,9 @@ def test_notes_list_empty_and_delete(base):
     req(url + "/note-x1", "PUT", b"<div>Free note</div>")
     assert req(url + "/note-x1", "DELETE")[0] == 200
     assert json.loads(req(url)[1]) == [] and req(url + "/note-x1")[1] == ""
+
+
+def test_browse_rejects_local_and_needs_token(base):
+    assert req(base + "/api/browse?url=http%3A%2F%2F127.0.0.1%2F")[0] == 400
+    assert "network" in req(base + "/api/browse?url=http%3A%2F%2Flocalhost%2F")[1]
+    assert req(base + "/api/browse?url=https%3A%2F%2Fexample.com", token=None)[0] == 403

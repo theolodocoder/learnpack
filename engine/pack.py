@@ -8,7 +8,7 @@ ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 FORMAT = 1  # the pack format this engine reads; bump on breaking changes
 LANGUAGES = ("python", "javascript", "typescript")
 # Interface features a pack can switch off. Learners can switch them off too, in Settings.
-FEATURES = ("notes", "timer", "focusMode", "studyStats", "review")
+FEATURES = ("notes", "timer", "focusMode", "studyStats", "review", "browser")
 COLOR_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
 
 

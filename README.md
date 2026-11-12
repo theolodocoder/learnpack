@@ -73,6 +73,7 @@ The full walkthrough, including API keys for the AI course and troubleshooting, 
 | **Lessons** | Full written pages (Markdown, highlighted code), embedded YouTube videos and playlists, "Go deeper" links |
 | **Practice** | Code exercises in Python, JavaScript or TypeScript: **Run** shows your output, **Check** runs hidden tests and reports each one as passed or failed, **Show solution** reveals the answer. Plus multiple-choice quizzes with explanations |
 | **Projects** | A project per section, with a brief, a tickable checklist, and fields for your repo and live URL |
+| **Links** | Every link opens in a built-in viewer panel beside the lesson, so you never leave the course. Sites that block embedding show as a reading copy |
 | **Notes** | An Apple Notes-style drawer: rich text, checklists, headings, search, one note per lesson plus free notes |
 | **Focus** | A Pomodoro timer in the top bar, and focus mode (press **F**) to go full screen |
 | **Progress** | Mark lessons done, see progress per section, pick up where you left off |

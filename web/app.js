@@ -897,3 +897,111 @@ $("#brand").addEventListener("click", (e) => {
 document.addEventListener("click", (e) => { if (!e.target.closest(".brand-wrap")) CourseMenu.toggle(false); });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") CourseMenu.toggle(false); });
 window.addEventListener("hashchange", () => CourseMenu.toggle(false));
+
+// ---------- in-app browser: links open in a panel, not in new tabs ----------
+// Sites that allow framing load live. Sites that refuse are fetched by the server and shown as a
+// reading copy in a sandbox with no scripts; links inside it keep opening in the panel.
+const Browser = {
+  stack: [], at: -1, loadId: 0,
+  get open() { return !$("#browser").hidden; },
+  show(url) {
+    this.stack = this.stack.slice(0, this.at + 1);
+    this.stack.push(url); this.at = this.stack.length - 1;
+    this.load();
+  },
+  go(step) { const i = this.at + step; if (i >= 0 && i < this.stack.length) { this.at = i; this.load(); } },
+  close() {
+    $("#browser").hidden = true;
+    const f = $("#br-frame"); f.removeAttribute("srcdoc"); f.src = "about:blank";
+  },
+  state(msg, { error = false } = {}) {
+    const s = $("#br-state");
+    s.hidden = !msg; s.classList.toggle("error", error);
+    s.innerHTML = msg;
+    $("#br-ext").hidden = !error;  // leaving the course is only offered when a page can't be shown here
+  },
+  async load() {
+    const url = this.stack[this.at], id = ++this.loadId, f = $("#br-frame");
+    $("#browser").hidden = false;
+    $("#br-back").disabled = this.at <= 0;
+    $("#br-fwd").disabled = this.at >= this.stack.length - 1;
+    let host = url; try { host = new URL(url).hostname.replace(/^www\./, ""); } catch (e) {}
+    $("#br-title").textContent = host; $("#br-url").textContent = url;
+    $("#br-ext").href = url; $("#br-mode").hidden = true;
+    this.state('<span class="spinner" aria-hidden="true"></span> Loading…');
+    try {
+      const r = await api(`/browse?url=${encodeURIComponent(url)}`);
+      if (id !== this.loadId) return;  // a newer click won
+      if (r.title) $("#br-title").textContent = r.title;
+      f.onload = () => { if (id === this.loadId) { this.state(""); if (!r.embeddable) this.hook(); } };
+      f.removeAttribute("srcdoc");
+      if (r.embeddable) {
+        f.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms allow-popups allow-presentation");
+        f.src = r.url;
+      } else {
+        $("#br-mode").hidden = false;
+        f.setAttribute("sandbox", "allow-same-origin");  // no scripts run in a reading copy
+        f.src = "about:blank";
+        f.srcdoc = r.html;
+      }
+    } catch (e) {
+      if (id !== this.loadId) return;
+      const msg = (e.message.match(/"error":\s*"([^"]+)"/) || [])[1] || "This page couldn't be shown here.";
+      this.state(`<strong>Can't show this page here.</strong><br>${esc(msg)}`, { error: true });
+    }
+  },
+  hook() {  // keep link clicks inside a reading copy in the panel
+    let doc; try { doc = $("#br-frame").contentDocument; } catch (e) { return; }
+    doc?.addEventListener("click", (e) => {
+      const a = e.target.closest?.("a[href]");
+      if (!a) return;
+      const href = a.href;
+      if (/^https?:/i.test(href) && !(a.getAttribute("href") || "").startsWith("#")) { e.preventDefault(); this.show(href); }
+    });
+  },
+};
+// Every external link inside the course opens in the panel (videos are embedded already).
+$("#main").addEventListener("click", (e) => {
+  const a = e.target.closest("a[href]");
+  if (!a || !feature("browser") || !/^https?:\/\//i.test(a.getAttribute("href") || "")) return;
+  if (e.metaKey || e.ctrlKey || e.shiftKey) return;  // a deliberate new-tab click is respected
+  e.preventDefault();
+  Browser.show(a.href);
+});
+$("#br-back").onclick = () => Browser.go(-1);
+$("#br-fwd").onclick = () => Browser.go(1);
+$("#br-reload").onclick = () => Browser.load();
+$("#br-close").onclick = () => Browser.close();
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && Browser.open && !document.fullscreenElement) Browser.close(); });
+window.addEventListener("hashchange", () => Browser.close());
+
+// Drag the panel's left edge to resize it (arrow keys work too). The width is remembered.
+(() => {
+  const panel = $("#browser"), handle = $("#br-resize");
+  const clamp = (w) => Math.round(Math.min(innerWidth - 160, Math.max(360, w)));
+  const apply = (w) => { panel.style.width = clamp(w) + "px"; };
+  const saved = +store.get("browserWidth");
+  if (saved) apply(saved);
+  handle.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    handle.setPointerCapture(e.pointerId);
+    document.body.classList.add("resizing");  // stops the page inside the panel from eating the drag
+    const move = (ev) => apply(innerWidth - ev.clientX);
+    const up = () => {
+      document.body.classList.remove("resizing");
+      handle.removeEventListener("pointermove", move);
+      store.set("browserWidth", parseInt(panel.style.width, 10));
+    };
+    handle.addEventListener("pointermove", move);
+    handle.addEventListener("pointerup", up, { once: true });
+  });
+  handle.addEventListener("keydown", (e) => {
+    const step = e.shiftKey ? 80 : 24;
+    if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+      e.preventDefault();
+      apply(panel.getBoundingClientRect().width + (e.key === "ArrowLeft" ? step : -step));
+      store.set("browserWidth", parseInt(panel.style.width, 10));
+    }
+  });
+  window.addEventListener("resize", () => { if (panel.style.width) apply(parseInt(panel.style.width, 10)); });
+})();

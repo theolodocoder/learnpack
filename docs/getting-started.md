@@ -84,6 +84,7 @@ python3 server.py
 | **Notes** | Your notes for this lesson. **‹ Notes** lists all notes, with search |
 | **◐** | Switch between system, light and dark mode |
 | **↻ Review** | Quiz questions you missed, due for another try |
+| **Any link** | Opens in a viewer panel beside the lesson. Close it with ✕ or Esc. If a site can't be shown there, you get a button to open it in your browser |
 
 ## 5. Do your first exercise
 

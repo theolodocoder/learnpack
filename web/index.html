@@ -107,6 +107,26 @@
       </section>
     </aside>
   </div>
+  <!-- In-app browser: links open here instead of new tabs -->
+  <section class="browser-panel" id="browser" aria-label="Link viewer" hidden>
+    <div class="browser-resize" id="br-resize" role="separator" aria-orientation="vertical" aria-label="Resize the link viewer" tabindex="0" title="Drag to resize"></div>
+    <div class="browser-bar">
+      <button class="icon-btn" id="br-back" aria-label="Back" title="Back" disabled>‹</button>
+      <button class="icon-btn" id="br-fwd" aria-label="Forward" title="Forward" disabled>›</button>
+      <button class="icon-btn" id="br-reload" aria-label="Reload" title="Reload">↻</button>
+      <div class="browser-address" title="">
+        <span class="browser-title" id="br-title"></span>
+        <span class="browser-url" id="br-url"></span>
+      </div>
+      <span class="browser-mode" id="br-mode" hidden title="This site doesn't allow being shown inside other pages, so you're seeing a reading copy without its scripts">Reading copy</span>
+      <a class="icon-btn browser-ext" id="br-ext" href="#" target="_blank" rel="noopener" aria-label="Open in your browser" title="Open in your browser">↗</a>
+      <button class="icon-btn" id="br-close" aria-label="Close" title="Close (Esc)">✕</button>
+    </div>
+    <div class="browser-body">
+      <iframe id="br-frame" title="Link viewer" referrerpolicy="no-referrer"></iframe>
+      <div class="browser-state" id="br-state" hidden></div>
+    </div>
+  </section>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>

@@ -16,10 +16,11 @@ import webbrowser
 from html import unescape
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import unquote, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
 from engine.pack import (ID_RE, PackError, find_practice, lessons, list_packs, load_pack,
                          practice_items, practice_lang, public_course, validate_pack)
+from engine.browse import BrowseError, browse
 from engine.runner import check_code, run_code
 
 ROOT = Path(__file__).resolve().parent
@@ -181,6 +182,12 @@ def make_handler(app: App, port: int):
             self.send(404, "not found", "text/plain")
 
         def api(self, method, parts):
+            if parts == ["browse"] and method == "GET":  # in-app browser panel
+                url = parse_qs(urlparse(self.path).query).get("url", [""])[0]
+                try:
+                    return self.send(200, browse(url))
+                except BrowseError as e:
+                    return self.send(400, {"error": str(e)})
             if parts == ["courses"] and method == "GET":
                 out = []
                 for cid, pack in app.packs().items():

@@ -84,6 +84,7 @@ course
 | `focusMode` | Focus mode (the F key or the ⛶ button): puts the browser in full screen. |
 | `studyStats` | The dashboard's Today panel: study time, daily goal, streak and week chart. |
 | `review` | The review queue: missed quiz questions come back on later days. |
+| `browser` | The built-in link viewer: links open in a panel inside the course instead of a new tab. |
 
 Example: a reading-only course with no timer or review:
 

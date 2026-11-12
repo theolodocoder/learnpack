@@ -86,6 +86,9 @@
         },
         "review": {
           "type": "boolean"
+        },
+        "browser": {
+          "type": "boolean"
         }
       }
     },
