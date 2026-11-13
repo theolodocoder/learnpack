@@ -100,6 +100,7 @@ self.onmessage = async ({ data }) => {
       importScripts("https://cdnjs.cloudflare.com/ajax/libs/typescript/5.6.3/typescript.min.js");
       tsc = self.ts;
     }
+    if (mode === "warm") return void postMessage({ type: "done", stdout: "", stderr: "", exit_code: 0, timed_out: false });
     postMessage({ type: "started" });
     const compile = (src, name) => (lang === "typescript" || name.endsWith(".ts")) && tsc
       ? tsc.transpileModule(src, { fileName: name, compilerOptions: { module: tsc.ModuleKind.ESNext, target: tsc.ScriptTarget.ES2022 } }).outputText

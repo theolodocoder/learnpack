@@ -90,8 +90,7 @@ button.side-section-head:hover { background: var(--sunken); }
 /* Lava progress */
 .lava-track { height: 8px; border-radius: 99px; background: var(--sunken); overflow: hidden; }
 .lava-fill { height: 100%; width: 0; border-radius: 99px; background: var(--lava); background-size: 200% 100%;
-  transition: width .6s cubic-bezier(.2,.8,.2,1); animation: flow 4s linear infinite; }
-@keyframes flow { from { background-position: 0 0; } to { background-position: -200% 0; } }
+  transition: width .6s cubic-bezier(.2,.8,.2,1); }
 
 /* Buttons */
 .btn { --b: var(--accent); display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: var(--radius-s);
@@ -129,11 +128,18 @@ button.side-section-head:hover { background: var(--sunken); }
 .video-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
 .tabs { display: flex; gap: 4px; }
 .tab { background: none; border: 1.5px solid var(--line); color: var(--muted); border-radius: 99px; padding: 5px 12px;
-  font: 500 13px var(--font-body); cursor: pointer; transition: all .15s; }
+  font: 500 13px var(--font-body); cursor: pointer; transition: color .15s, border-color .15s, background .15s; }
 .tab:hover { color: var(--ink); border-color: var(--muted); }
 .tab.active { background: var(--ink); border-color: var(--ink); color: var(--bg); }
 .player { position: relative; aspect-ratio: 16 / 9; border-radius: var(--radius); overflow: hidden; background: #000; }
 .player iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.yt-poster { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; background: #000; cursor: pointer; }
+.yt-poster img { width: 100%; height: 100%; object-fit: cover; opacity: .85; transition: opacity .15s; }
+.yt-poster:hover img { opacity: 1; }
+.yt-play { position: absolute; left: 50%; top: 50%; width: 68px; height: 48px; margin: -24px 0 0 -34px; border-radius: 14px; background: var(--accent); transition: transform .12s; }
+.yt-play::after { content: ""; position: absolute; left: 27px; top: 14px; border-style: solid; border-width: 10px 0 10px 17px; border-color: transparent transparent transparent #fff; }
+.yt-poster:hover .yt-play { transform: scale(1.06); }
+.yt-poster:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
 
 /* Prose */
 .prose { font-size: 17px; }

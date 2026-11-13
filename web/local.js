@@ -48,18 +48,29 @@ window.LocalBackend = (() => {
     }
     return bundled;
   }
-  async function course(cid) {
-    if (cache[cid]) return cache[cid];
-    const own = await get(`pack:${cid}`);
-    if (own) return (cache[cid] = own);
-    if ((await bundledIndex()).some((c) => c.id === cid)) {
-      const r = await fetch(`packs/${encodeURIComponent(cid)}.json`);
-      if (r.ok) return (cache[cid] = await r.json());
-    }
-    throw new Error("404 That course isn't installed in this browser.");
+  // Cached as a promise, so a background prefetch and a click share one download.
+  function course(cid) {
+    cache[cid] ||= (async () => {
+      const own = await get(`pack:${cid}`);
+      if (own) return own;
+      if ((await bundledIndex()).some((c) => c.id === cid)) {
+        const r = await fetch(`packs/${encodeURIComponent(cid)}.json`);
+        if (r.ok) return r.json();
+      }
+      throw new Error("404 That course isn't installed in this browser.");
+    })();
+    cache[cid].catch(() => delete cache[cid]);
+    return cache[cid];
   }
   const lessonsOf = (c) => (c.sections || []).flatMap((s) => s.lessons || []);
   const practiceOf = (c) => lessonsOf(c).flatMap((l) => l.practice || []);
+  const job = (c, p, mode, code) => ({ lang: p.language || c.language || "python", mode, code, tests: p.tests,
+    support: c._support || {}, requirements: c.requirements?.python || [] });
+  // Called when an exercise appears on screen: gets Python/TypeScript and its packages ready in the background.
+  async function warm(cid, pid) {
+    const c = await course(cid), p = practiceOf(c).find((x) => x.id === pid);
+    if (p) window.WebRunner.warm(job(c, p, "warm", p.starter || ""));
+  }
   const emptyState = () => ({ done: [], checklist: {}, links: {}, last: "" });
 
   async function listCourses() {
@@ -74,6 +85,7 @@ window.LocalBackend = (() => {
     };
     for (const s of await bundledIndex()) if (!(await get(`pack:${s.id}`))) await add(s, false);
     for (const [, c] of await entries("pack:")) await add(c, true);
+    for (const c of out) if (!c.imported) setTimeout(() => course(c.id).catch(() => {}), 0);  // so opening it is instant
     return out;
   }
 
@@ -129,9 +141,7 @@ window.LocalBackend = (() => {
     if (rest[0] === "run" && method === "POST") {
       const p = practiceOf(c).find((x) => x.id === body.practice);
       if (!p || p.type !== "code") throw new Error("404 no such practice");
-      const lang = p.language || c.language || "python";
-      return window.WebRunner.run({ lang, mode: body.mode, code: String(body.code || ""), tests: p.tests,
-        support: c._support || {}, requirements: c.requirements?.python || [] });
+      return window.WebRunner.run(job(c, p, body.mode, String(body.code || "")));
     }
     throw new Error("404 not found");
   }
@@ -228,5 +238,5 @@ window.LocalBackend = (() => {
     for (const [id, code] of Object.entries(data.code || {})) await put(`${cid}:code:${id}`, code);
   }
 
-  return { api, addPack, removePack, backup, restore, course };
+  return { api, addPack, removePack, backup, restore, course, warm };
 })();

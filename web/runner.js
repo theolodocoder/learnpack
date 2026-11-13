@@ -8,7 +8,8 @@ window.WebRunner = (() => {
   const workers = {};
   const BUILD = "dev";  // replaced with a build id by `server.py build-web`, so browsers never run a stale worker
   const file = (lang) => `${lang === "python" ? "py-worker.js" : "js-worker.js"}?v=${BUILD}`;
-  const say = (text) => window.dispatchEvent(new CustomEvent("learnpack-runner", { detail: text }));
+  let current = "";  // the latest loading message, so a run queued behind a warm-up can show it too
+  const say = (text) => { current = text; window.dispatchEvent(new CustomEvent("learnpack-runner", { detail: text })); };
 
   // One run at a time per language: a worker handles one job, so overlapping clicks queue up.
   const queues = {};
@@ -51,5 +52,13 @@ window.WebRunner = (() => {
       w.postMessage(job);
     });
   }
-  return { run };
+  // Load the language runtime and this exercise's packages in the background, so the first Check is quick.
+  const warmed = new Set();
+  function warm(job) {
+    const key = job.lang === "python" ? "python:" + job.requirements.join(",") + job.tests : job.lang;
+    if (warmed.has(key)) return;
+    warmed.add(key);
+    run({ ...job, mode: "warm" }).then(() => say(""), () => {});
+  }
+  return { run, warm, status: () => current };
 })();

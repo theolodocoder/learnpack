@@ -442,9 +442,18 @@ function renderDashboard() {
   requestAnimationFrame(() => { const f = $(".big-progress .lava-fill"); if (f) f.style.width = p.pct + "%"; });
 }
 
-function ytSrc(v) {
+// The YouTube player is about 1 MB of script, so lessons show its thumbnail and load it on click.
+function playerHtml(v, fallbackTitle, play = false) {
+  const title = esc(v.title || fallbackTitle);
+  if (play) return `<iframe src="${ytSrc(v, true)}" title="${title}" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
+  const thumb = v.youtube ? `<img src="https://i.ytimg.com/vi/${encodeURIComponent(v.youtube)}/hqdefault.jpg" alt="" loading="lazy" decoding="async">` : "";
+  return `<button class="yt-poster" aria-label="Play video: ${title}">${thumb}<span class="yt-play" aria-hidden="true"></span></button>`;
+}
+
+function ytSrc(v, autoplay = false) {
   const base = "https://www.youtube-nocookie.com/embed/";
   const q = new URLSearchParams({ rel: "0", modestbranding: "1" });
+  if (autoplay) q.set("autoplay", "1");
   if (v.start) q.set("start", v.start);
   if (v.playlist) { q.set("list", v.playlist); return `${base}videoseries?${q}`; }
   return `${base}${encodeURIComponent(v.youtube)}?${q}`;
@@ -463,7 +472,7 @@ function renderLesson(id) {
     <p class="meta">${[l.duration, videos.length ? `${videos.length} video${videos.length > 1 ? "s" : ""}` : "", (l.practice || []).length ? `${l.practice.length} practice` : ""].filter(Boolean).join(", ")}</p>
     ${videos.length ? `<section class="block" aria-label="Video">
       ${videos.length > 1 ? `<div class="video-tabs tabs">${videos.map((v, k) => `<button class="tab ${k ? "" : "active"}" data-video="${k}">${esc(v.title || `Video ${k + 1}`)}</button>`).join("")}</div>` : ""}
-      <div class="player"><iframe src="${ytSrc(videos[0])}" title="${esc(videos[0].title || l.title)}" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div>
+      <div class="player">${playerHtml(videos[0], l.title)}</div>
       ${videos.length === 1 && videos[0].title ? `<p class="meta" style="margin-top:8px">${esc(videos[0].title)}</p>` : ""}
     </section>` : ""}
     <section class="block prose">${md(l.body.replace(/^\s*# [^\n]*\n/, ""))}</section>
@@ -483,9 +492,12 @@ function renderLesson(id) {
 
   document.querySelectorAll("[data-video]").forEach((b) => (b.onclick = () => {
     document.querySelectorAll("[data-video]").forEach((x) => x.classList.toggle("active", x === b));
-    const v = videos[+b.dataset.video];
-    $(".player iframe").src = ytSrc(v); $(".player iframe").title = v.title || l.title;
+    $(".player").innerHTML = playerHtml(videos[+b.dataset.video], l.title);
   }));
+  $(".player")?.addEventListener("click", (e) => {
+    const b = e.target.closest(".yt-poster");
+    if (b) $(".player").innerHTML = playerHtml(videos[+($(".video-tabs .active")?.dataset.video || 0)], l.title, true);
+  });
 
   const doneBtn = $("#done-btn");
   const paint = () => { doneBtn.innerHTML = isDone(l.id) ? `<span class="done-check">✓</span> Done` : "Mark as done"; doneBtn.classList.toggle("is-done", isDone(l.id)); };
@@ -573,6 +585,10 @@ function codeCard(p) {
   }, 800);
 
   const out = $(".output", el);
+  if (STATIC) {  // web version: get the runtime ready once the exercise is on screen
+    const io = new IntersectionObserver((es) => { if (es.some((x) => x.isIntersecting)) { io.disconnect(); window.LocalBackend.warm(S.cid, p.id); } });
+    io.observe(el);
+  }
   async function go(mode) {
     const btns = el.querySelectorAll("[data-act]");
     btns.forEach((b) => (b.disabled = true));
@@ -580,6 +596,7 @@ function codeCard(p) {
     save.flush();
     const onStatus = (e) => { if (e.detail) out.innerHTML = `<pre><span class="spinner" aria-hidden="true"></span>${esc(e.detail)}</pre>`; };
     window.addEventListener("learnpack-runner", onStatus);
+    if (STATIC) onStatus({ detail: window.WebRunner.status() });  // still loading from the warm-up
     try {
       const r = await api(`/courses/${S.cid}/run`, { method: "POST", body: { practice: p.id, code: cm.getValue(), mode } });
       let html = "";
