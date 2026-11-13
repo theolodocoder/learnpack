@@ -284,6 +284,20 @@ paintMenuBtn();
 window.addEventListener("hashchange", route);
 route();
 
+// ---------- web version: offline cache and preloading ----------
+function idle(fn) { (window.requestIdleCallback || ((f) => setTimeout(f, 200)))(fn, { timeout: 2000 }); }
+if (STATIC) {
+  if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+  // Pointing at (or tabbing to) a lesson link gets its exercises and video thumbnail ready before the click.
+  const lessonFromLink = (e) => {
+    const a = e.target.closest?.("a[href*='/l/']");
+    const m = a?.getAttribute("href").match(/^#\/([^/]+)\/l\/([^/]+)$/);
+    if (m) window.LocalBackend.warmLesson(decodeURIComponent(m[1]), decodeURIComponent(m[2]));
+  };
+  document.addEventListener("pointerover", lessonFromLink, { passive: true });
+  document.addEventListener("focusin", lessonFromLink);
+}
+
 async function route() {
   const parts = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean).map(decodeURIComponent);
   $("#sidebar").classList.remove("open");
@@ -325,6 +339,7 @@ async function loadCourse(cid) {
   $("#brand").classList.toggle("switchable", switchable);
   $("#brand").setAttribute("aria-haspopup", switchable ? "menu" : "false");
   document.title = S.course.title;
+  if (STATIC) idle(() => window.LocalBackend.warmCourse(cid));
 }
 
 function setChrome({ sidebar = true, notesKey = null } = {}) {
@@ -509,6 +524,7 @@ function renderLesson(id) {
 
   const host = $("#practice");
   (l.practice || []).forEach((p) => host.append(p.type === "quiz" ? quizCard(p) : codeCard(p)));
+  if (STATIC && next) idle(() => window.LocalBackend.warmLesson(S.cid, next.id));  // the likely next click
 }
 
 // onResult(right) is called after each check. By default (in a lesson) a wrong answer

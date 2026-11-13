@@ -71,6 +71,23 @@ window.LocalBackend = (() => {
     const c = await course(cid), p = practiceOf(c).find((x) => x.id === pid);
     if (p) window.WebRunner.warm(job(c, p, "warm", p.starter || ""));
   }
+  // Preloading, so nothing waits on a click: the course's runtime, then the exercises the learner is about to see.
+  const saveData = () => navigator.connection?.saveData;
+  async function warmCourse(cid) {
+    if (saveData()) return;
+    const c = await course(cid);
+    for (const lang of new Set(practiceOf(c).filter((p) => p.type === "code").map((p) => p.language || c.language || "python"))) {
+      window.WebRunner.warm({ lang, mode: "warm", code: "", tests: "", support: {}, requirements: [] });
+    }
+  }
+  async function warmLesson(cid, lid) {
+    if (saveData()) return;
+    const c = await course(cid), l = lessonsOf(c).find((x) => x.id === lid);
+    if (!l) return;
+    for (const p of l.practice || []) if (p.type === "code") warm(cid, p.id);
+    const v = (l.videos || [])[0];
+    if (v?.youtube) new Image().src = `https://i.ytimg.com/vi/${encodeURIComponent(v.youtube)}/hqdefault.jpg`;
+  }
   const emptyState = () => ({ done: [], checklist: {}, links: {}, last: "" });
 
   async function listCourses() {
@@ -238,5 +255,5 @@ window.LocalBackend = (() => {
     for (const [id, code] of Object.entries(data.code || {})) await put(`${cid}:code:${id}`, code);
   }
 
-  return { api, addPack, removePack, backup, restore, course, warm };
+  return { api, addPack, removePack, backup, restore, course, warm, warmCourse, warmLesson };
 })();

@@ -47,8 +47,9 @@ def build_web(out: Path, courses_dir: Path = ROOT / "courses") -> list[str]:
     (out / ".nojekyll").write_text("")  # serve files as-is on GitHub Pages
     # Version the scripts so browsers fetch fresh copies after each deploy instead of stale cached ones.
     build_id = str(int(time.time()))
-    runner = out / "runner.js"
-    runner.write_text(runner.read_text().replace('const BUILD = "dev"', f'const BUILD = "{build_id}"'))
+    for name in ("runner.js", "sw.js"):
+        f = out / name
+        f.write_text(f.read_text().replace('const BUILD = "dev"', f'const BUILD = "{build_id}"'))
     index = out / "index.html"
     html = index.read_text()
     for name in ("style.css", "study.js", "local.js", "runner.js", "app.js"):

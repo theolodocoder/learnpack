@@ -48,6 +48,8 @@ Open **[theolodocoder.github.io/learnpack](https://theolodocoder.github.io/learn
 
 The web version runs every AI Engineering exercise (one asyncio timeout test can occasionally fail in browsers; Check again). Things that need a real computer, such as calling an AI API with your own key or exact Node event-loop behaviour, need the download below. Some sites refuse to be shown inside another page; those links open in a new tab.
 
+After your first visit it works offline: the app, the courses, and Python with any packages an exercise has used are cached in your browser. Updates arrive on your next visit after a release.
+
 Got a pack file from someone? Drag the `.learnpack.json` or `.zip` onto the home page.
 
 ### Download it (full version)
