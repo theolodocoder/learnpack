@@ -627,13 +627,18 @@ function codeCard(p) {
     io.observe(el);
   }
   async function go(mode) {
-    const btns = el.querySelectorAll("[data-act]");
+    const btns = el.querySelectorAll("[data-act]"), btn = el.querySelector(`[data-act="${mode}"]`);
     btns.forEach((b) => (b.disabled = true));
-    out.hidden = false; out.innerHTML = `<pre>${mode === "check" ? "Running tests…" : "Running…"}</pre>`;
+    btn.classList.add("is-busy"); out.setAttribute("aria-busy", "true");
+    // A spinner the whole time; loading messages ("Installing numpy…") replace the text, and when one
+    // clears it goes back to "Running tests…" instead of leaving a stale message up.
+    const busy = (text) => { out.innerHTML = `<pre role="status"><span class="spinner" aria-hidden="true"></span>${esc(text)}</pre>`; };
+    const running = mode === "check" ? "Running tests…" : "Running…";
+    out.hidden = false; busy(running);
     save.flush();
-    const onStatus = (e) => { if (e.detail) out.innerHTML = `<pre><span class="spinner" aria-hidden="true"></span>${esc(e.detail)}</pre>`; };
+    const onStatus = (e) => busy(e.detail || running);
     window.addEventListener("learnpack-runner", onStatus);
-    if (STATIC) onStatus({ detail: window.WebRunner.status() });  // still loading from the warm-up
+    if (STATIC && window.WebRunner.status()) busy(window.WebRunner.status());  // still loading from the warm-up
     try {
       const r = await api(`/courses/${S.cid}/run`, { method: "POST", body: { practice: p.id, code: cm.getValue(), mode } });
       let html = "";
@@ -650,7 +655,10 @@ function codeCard(p) {
       out.innerHTML = html;
     } catch (e) {
       out.innerHTML = `<pre class="stderr">Couldn't run your code: ${esc(e.message)}. Is the server still running?</pre>`;
-    } finally { window.removeEventListener("learnpack-runner", onStatus); btns.forEach((b) => (b.disabled = false)); }
+    } finally {
+      window.removeEventListener("learnpack-runner", onStatus);
+      btns.forEach((b) => (b.disabled = false)); btn.classList.remove("is-busy"); out.removeAttribute("aria-busy");
+    }
   }
 
   el.addEventListener("click", async (e) => {
