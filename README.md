@@ -46,7 +46,7 @@ courses/
 
 Open **[theolodocoder.github.io/learnpack](https://theolodocoder.github.io/learnpack/)**. It's the same app: lessons, notes, quizzes, the focus timer, and exercises that run Python ([Pyodide](https://pyodide.org)) or TypeScript right in your browser. Your progress stays in that browser; use **Back up progress** on the home page to save it to a file.
 
-The web version runs every AI Engineering exercise except one (an asyncio timeout test that behaves differently in browsers). Things that need a real computer, such as calling an AI API with your own key or exact Node event-loop behaviour, need the download below. Some sites refuse to be shown inside another page; those links open in a new tab.
+The web version runs every AI Engineering exercise (one asyncio timeout test can occasionally fail in browsers; Check again). Things that need a real computer, such as calling an AI API with your own key or exact Node event-loop behaviour, need the download below. Some sites refuse to be shown inside another page; those links open in a new tab.
 
 Got a pack file from someone? Drag the `.learnpack.json` or `.zip` onto the home page.
 
