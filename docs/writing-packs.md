@@ -107,6 +107,14 @@ A pack is just a folder, so you can distribute it however you like: a git repo, 
 
 **For learners:** unzip the pack into `courses/`, start the app, and pick the course from the switcher.
 
+**For the web version:** turn the pack into one file and send that:
+
+```bash
+python3 server.py bundle courses/your-course your-course.learnpack.json
+```
+
+Learners drag the file (or a `.zip` of the pack folder) onto the home page of the [web version](https://theolodocoder.github.io/learnpack/). It's stored in their browser, nothing is uploaded. Python exercises install `requirements` with micropip, so pure-Python packages work; packages with native code that Pyodide doesn't ship, and Node-only APIs such as `node:crypto`, don't. Test your pack there before you share it.
+
 **Before you publish:**
 - **Fill in the pack's details:** `version`, `author`, `license` and `requirements` in `course.json`.
 - **Validate it,** with a clean `validate` run.

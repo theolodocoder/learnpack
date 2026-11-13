@@ -8,8 +8,12 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
 };
 
+// Web version: no local server (the page wasn't served by server.py), so the browser does its job.
+const STATIC = window.LEARN_TOKEN === "__" + "TOKEN__";
+
 async function api(path, { method = "GET", body, text = false } = {}) {
-  const res = await fetch("/api" + path, {
+  if (STATIC) return window.LocalBackend.api(path, { method, body });
+  const res = await fetch("api" + path, {
     method,
     headers: { "X-Learn-Token": window.LEARN_TOKEN, ...(body !== undefined && !text ? { "Content-Type": "application/json" } : {}) },
     body: body === undefined ? undefined : text ? body : JSON.stringify(body),
@@ -138,10 +142,14 @@ const Notes = {
     $("#nv-list").hidden = true; $("#nv-note").hidden = false; this.closeFormat();
     ed.contentEditable = "false"; ed.innerHTML = ""; this.status("");
     try {
-      const r = await fetch(`/api/courses/${S.cid}/notes/${key}`, { headers: { "X-Learn-Token": window.LEARN_TOKEN } });
-      if (!r.ok) throw new Error(r.status);
-      const raw = await r.text();
-      const html = r.headers.get("X-Note-Format") === "md" ? marked.parse(raw) : raw;  // older Markdown notes convert on open
+      let raw, format = "html";
+      if (STATIC) raw = await api(`/courses/${S.cid}/notes/${key}`);
+      else {
+        const r = await fetch(`api/courses/${S.cid}/notes/${key}`, { headers: { "X-Learn-Token": window.LEARN_TOKEN } });
+        if (!r.ok) throw new Error(r.status);
+        raw = await r.text(); format = r.headers.get("X-Note-Format");
+      }
+      const html = format === "md" ? marked.parse(raw) : raw;  // older Markdown notes convert on open
       ed.innerHTML = DOMPurify.sanitize(html) || "<div><br></div>";
       const known = this.list.find((n) => n.id === key);
       $("#nv-date").textContent = fmtLong(known ? known.modified : Date.now());
@@ -284,7 +292,7 @@ async function route() {
   try {
     if (!S.courses) S.courses = await api("/courses");
     if (!parts.length) {
-      if (S.courses.length === 1) return void location.replace(`#/${S.courses[0].id}`);
+      if (S.courses.length === 1 && !STATIC) return void location.replace(`#/${S.courses[0].id}`);
       return renderHome();
     }
     await loadCourse(parts[0]);
@@ -313,8 +321,9 @@ async function loadCourse(cid) {
   applyLook();
   $("#brand").textContent = S.course.title;
   $("#brand").href = `#/${cid}`;
-  $("#brand").classList.toggle("switchable", S.courses?.length > 1);
-  $("#brand").setAttribute("aria-haspopup", S.courses?.length > 1 ? "menu" : "false");
+  const switchable = STATIC || S.courses?.length > 1;  // the web version always offers "All courses" (to add more)
+  $("#brand").classList.toggle("switchable", switchable);
+  $("#brand").setAttribute("aria-haspopup", switchable ? "menu" : "false");
   document.title = S.course.title;
 }
 
@@ -394,13 +403,15 @@ function renderHome() {
   $("#brand").classList.remove("switchable");
   setChrome({ sidebar: false });
   $("#main").innerHTML = `<div class="page wide"><div class="hero"><h1 class="page-title">Your courses</h1>
-    <p>Each course is a folder in <code>courses/</code>. Copy <code>courses/_template</code> to make a new one.</p></div>
+    ${STATIC ? `<p>Pick a course to start. Your progress and notes are saved in this browser, on this device. Use <strong>Back up</strong> on a course page to keep a copy.</p>`
+             : `<p>Each course is a folder in <code>courses/</code>. Copy <code>courses/_template</code> to make a new one.</p>`}</div>
     ${S.courses.length ? `<div class="course-grid">${S.courses.map((c) => {
       const pct = c.total ? Math.round((c.done / c.total) * 100) : 0;
       return `<a class="card course-card" href="#/${esc(c.id)}"><h2>${esc(c.title)}</h2><p>${esc(c.description)}</p>
         <div class="lava-track"><div class="lava-fill" style="width:${pct}%"></div></div>
         <p style="margin:8px 0 0">${c.done} of ${c.total} lessons done</p></a>`;
-    }).join("")}</div>` : `<p class="empty">No courses yet. Add a folder with a <code>course.json</code> to <code>courses/</code>.</p>`}</div>`;
+    }).join("")}${STATIC ? addCourseCard() : ""}</div>` : (STATIC ? `<div class="course-grid">${addCourseCard()}</div>` : `<p class="empty">No courses yet. Add a folder with a <code>course.json</code> to <code>courses/</code>.</p>`)}</div>`;
+  if (STATIC) wireAddCourse();
 }
 
 function nextLesson() {
@@ -426,7 +437,8 @@ function renderDashboard() {
         <div><h3>${first ? `<a href="#/${S.cid}/l/${first.id}">${esc(s.title)}</a>` : esc(s.title)}</h3><p>${esc(s.summary || "")}</p></div>
         <div><div class="stat">${soon ? "Coming soon" : `${sp.done} of ${sp.total} lessons`}</div>
           <div class="lava-track"><div class="lava-fill" style="width:${sp.pct}%"></div></div></div></div>`;
-    }).join("")}</div></div>`;
+    }).join("")}</div>${STATIC ? backupRow() : ""}</div>`;
+  if (STATIC) wireBackup();
   requestAnimationFrame(() => { const f = $(".big-progress .lava-fill"); if (f) f.style.width = p.pct + "%"; });
 }
 
@@ -566,6 +578,8 @@ function codeCard(p) {
     btns.forEach((b) => (b.disabled = true));
     out.hidden = false; out.innerHTML = `<pre>${mode === "check" ? "Running tests…" : "Running…"}</pre>`;
     save.flush();
+    const onStatus = (e) => { if (e.detail) out.innerHTML = `<pre><span class="spinner" aria-hidden="true"></span>${esc(e.detail)}</pre>`; };
+    window.addEventListener("learnpack-runner", onStatus);
     try {
       const r = await api(`/courses/${S.cid}/run`, { method: "POST", body: { practice: p.id, code: cm.getValue(), mode } });
       let html = "";
@@ -582,7 +596,7 @@ function codeCard(p) {
       out.innerHTML = html;
     } catch (e) {
       out.innerHTML = `<pre class="stderr">Couldn't run your code: ${esc(e.message)}. Is the server still running?</pre>`;
-    } finally { btns.forEach((b) => (b.disabled = false)); }
+    } finally { window.removeEventListener("learnpack-runner", onStatus); btns.forEach((b) => (b.disabled = false)); }
   }
 
   el.addEventListener("click", async (e) => {
@@ -866,8 +880,10 @@ function applyLook() {
   accent ? root.setProperty("--accent", accent) : root.removeProperty("--accent");
   // A pack's add-on stylesheet loads after the platform's, so it can restyle anything.
   $("#pack-css")?.remove();
-  if (S.course?.theme?.css) {
-    const link = Object.assign(document.createElement("link"), { id: "pack-css", rel: "stylesheet", href: `/packs/${S.cid}/theme.css` });
+  if (STATIC && S.course?._themeCss) {
+    document.head.append(Object.assign(document.createElement("style"), { id: "pack-css", textContent: S.course._themeCss }));
+  } else if (S.course?.theme?.css) {
+    const link = Object.assign(document.createElement("link"), { id: "pack-css", rel: "stylesheet", href: `packs/${S.cid}/theme.css` });
     document.head.append(link);
   }
 }
@@ -890,7 +906,7 @@ const CourseMenu = {
   },
 };
 $("#brand").addEventListener("click", (e) => {
-  if (!S.course || !S.courses || S.courses.length < 2) return;  // one course: the title just goes to its dashboard
+  if (!S.course || !S.courses || (S.courses.length < 2 && !STATIC)) return;  // one course: the title just goes to its dashboard
   e.preventDefault();
   CourseMenu.toggle();
 });
@@ -946,9 +962,25 @@ const Browser = {
       }
     } catch (e) {
       if (id !== this.loadId) return;
+      if (e.message === "browse-unavailable") return this.liveOnly(url, id);  // web version: no server to fetch with
       const msg = (e.message.match(/"error":\s*"([^"]+)"/) || [])[1] || "This page couldn't be shown here.";
       this.state(`<strong>Can't show this page here.</strong><br>${esc(msg)}`, { error: true });
     }
+  },
+  // Web version: there's no server to make reading copies, so sites known to block embedding get a
+  // clear "open it in a new tab" card, and everything else loads live.
+  BLOCKS: /(^|\.)(github\.com|x\.com|twitter\.com|linkedin\.com|google\.com|facebook\.com|instagram\.com|medium\.com|stackoverflow\.com|reddit\.com|notion\.so|figma\.com)$/i,
+  liveOnly(url, id) {
+    let host = ""; try { host = new URL(url).hostname; } catch (e) {}
+    if (this.BLOCKS.test(host)) {
+      return this.state(`<strong>${esc(host.replace(/^www\./, ""))} doesn't allow being shown inside other pages.</strong><br>Use the ↗ button above to open it in a new tab, then come back here.`, { error: true });
+    }
+    const f = $("#br-frame");
+    f.onload = () => { if (id === this.loadId) this.state(""); };
+    f.removeAttribute("srcdoc");
+    f.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms allow-popups allow-presentation");
+    f.src = url;
+    $("#br-ext").hidden = false;  // in case the site refuses to load in the panel
   },
   hook() {  // keep link clicks inside a reading copy in the panel
     let doc; try { doc = $("#br-frame").contentDocument; } catch (e) { return; }
@@ -1005,3 +1037,67 @@ window.addEventListener("hashchange", () => Browser.close());
   });
   window.addEventListener("resize", () => { if (panel.style.width) apply(parseInt(panel.style.width, 10)); });
 })();
+
+
+// ---------- web version only: add a course, back up and restore ----------
+function addCourseCard() {
+  return `<label class="card course-card add-course" id="add-course" tabindex="0">
+    <h2>Add a course</h2>
+    <p>Drop a course pack here (a <code>.learnpack.json</code> file or a <code>.zip</code> of a pack folder), or click to choose one.</p>
+    <span class="btn ghost small">Choose a file</span>
+    <input type="file" id="add-course-file" accept=".json,.zip,application/json,application/zip" hidden>
+    <p class="add-status" id="add-status" role="status"></p></label>`;
+}
+function wireAddCourse() {
+  const card = $("#add-course"), input = $("#add-course-file"), status = $("#add-status");
+  const add = async (file) => {
+    if (!file) return;
+    status.className = "add-status"; status.textContent = `Adding ${file.name}…`;
+    try {
+      const c = await window.LocalBackend.addPack(file);
+      S.courses = await api("/courses");
+      location.hash = `#/${c.id}`;
+    } catch (e) { status.className = "add-status bad"; status.textContent = e.message.replace(/^\d+ /, ""); }
+  };
+  input.onchange = () => add(input.files[0]);
+  card.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } });
+  ["dragenter", "dragover"].forEach((ev) => card.addEventListener(ev, (e) => { e.preventDefault(); card.classList.add("dragging"); }));
+  ["dragleave", "drop"].forEach((ev) => card.addEventListener(ev, () => card.classList.remove("dragging")));
+  card.addEventListener("drop", (e) => { e.preventDefault(); add(e.dataTransfer.files[0]); });
+}
+function backupRow() {
+  const imported = S.courses?.find((c) => c.id === S.cid)?.imported;
+  return `<div class="backup-row">
+    <span>Your progress, notes and code are saved in this browser.</span>
+    <button class="btn ghost small" id="backup-btn">Back up</button>
+    <label class="btn ghost small">Restore<input type="file" id="restore-file" accept=".json,application/json" hidden></label>
+    ${imported ? `<button class="btn ghost small" id="remove-course">Remove course</button>` : ""}
+    <span class="add-status" id="backup-status" role="status"></span></div>`;
+}
+function wireBackup() {
+  const say = (msg, bad) => { const s = $("#backup-status"); s.className = "add-status" + (bad ? " bad" : ""); s.textContent = msg; };
+  $("#backup-btn").onclick = async () => {
+    const data = await window.LocalBackend.backup(S.cid);
+    const a = Object.assign(document.createElement("a"), {
+      href: URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" })),
+      download: `${S.cid}-backup-${new Date().toISOString().slice(0, 10)}.json`,
+    });
+    document.body.append(a); a.click(); a.remove();
+    say("Backup downloaded. Keep it somewhere safe.");
+  };
+  $("#restore-file").onchange = async (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    try {
+      await window.LocalBackend.restore(S.cid, JSON.parse(await file.text()));
+      S.state = await api(`/courses/${S.cid}/state`);
+      S.state.passed ||= []; S.state.study ||= {}; S.state.pomodoros ||= {}; S.state.review ||= {}; S.state.goal ||= 60;
+      renderDashboard(); say("Restored.");
+    } catch (err) { say(err.message, true); }
+  };
+  const rm = $("#remove-course");
+  if (rm) rm.onclick = async () => {
+    if (!confirm("Remove this course from this browser? Your progress stays saved in case you add it again.")) return;
+    await window.LocalBackend.removePack(S.cid);
+    S.courses = await api("/courses"); S.cid = null; location.hash = "#/";
+  };
+}

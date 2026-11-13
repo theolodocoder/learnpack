@@ -480,3 +480,14 @@ button.side-section-head:hover { background: var(--sunken); }
 body.resizing { cursor: col-resize; user-select: none; }
 body.resizing .browser-body iframe { pointer-events: none; }
 body.resizing .browser-panel { animation: none; }
+
+/* Web version: add a course, back up and restore */
+.add-course { border-style: dashed; cursor: pointer; display: grid; gap: 10px; align-content: start; }
+.add-course.dragging { border-color: var(--accent); background: var(--accent-soft); }
+.add-course .btn { justify-self: start; pointer-events: none; }
+.add-status { font-size: 13.5px; color: var(--muted); margin: 0; }
+.add-status.bad { color: var(--bad); font-weight: 500; }
+.backup-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--line);
+  font-size: 14px; color: var(--muted); }
+.backup-row > span:first-child { margin-right: auto; }
+.backup-row label.btn { cursor: pointer; }

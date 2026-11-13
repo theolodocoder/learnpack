@@ -2,6 +2,8 @@
 
   python3 server.py [--port 8000]        serve every course pack in courses/
   python3 server.py validate <pack-dir>  check a pack and run its reference solutions
+  python3 server.py build-web [site/]    build the web version (static files) into a folder
+  python3 server.py bundle <pack-dir>    write one shareable .learnpack.json file for the web version
 """
 import argparse
 import json
@@ -283,11 +285,27 @@ def already_running(url: str) -> bool:
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", nargs="?", default="serve", choices=["serve", "validate"])
-    ap.add_argument("pack", nargs="?")
+    ap.add_argument("command", nargs="?", default="serve", choices=["serve", "validate", "build-web", "bundle"])
+    ap.add_argument("pack", nargs="?", help="pack folder (validate, bundle) or output folder (build-web)")
+    ap.add_argument("out", nargs="?", help="output file for bundle")
     ap.add_argument("--port", type=int, default=8000)
     ap.add_argument("--no-browser", action="store_true", help="don't open the browser")
     a = ap.parse_args()
+    if a.command == "build-web":
+        from engine.webbuild import build_web
+        out = Path(a.pack or "site")
+        ids = build_web(out)
+        print(f"Built the web version in {out}/ with: {', '.join(ids) or 'no courses'}")
+        return
+    if a.command == "bundle":
+        from engine.webbuild import bundle
+        if not a.pack:
+            ap.error("bundle needs a pack folder")
+        course = bundle(Path(a.pack))
+        out = Path(a.out or f"{course['id']}.learnpack.json")
+        out.write_text(json.dumps(course, ensure_ascii=False), encoding="utf-8")
+        print(f"Wrote {out}: drag it into the web version to add the course")
+        return
     if a.command == "validate":
         if not a.pack:
             ap.error("validate needs a pack folder")

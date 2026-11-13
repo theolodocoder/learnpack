@@ -42,6 +42,16 @@ courses/
 
 ## Quick start
 
+### Use it in your browser (nothing to install)
+
+Open **[theolodocoder.github.io/learnpack](https://theolodocoder.github.io/learnpack/)**. It's the same app: lessons, notes, quizzes, the focus timer, and exercises that run Python ([Pyodide](https://pyodide.org)) or TypeScript right in your browser. Your progress stays in that browser; use **Back up progress** on the home page to save it to a file.
+
+The web version runs every AI Engineering exercise except one (an asyncio timeout test that behaves differently in browsers). Things that need a real computer, such as calling an AI API with your own key or exact Node event-loop behaviour, need the download below. Some sites refuse to be shown inside another page; those links open in a new tab.
+
+Got a pack file from someone? Drag the `.learnpack.json` or `.zip` onto the home page.
+
+### Download it (full version)
+
 **You need:** [Python 3.10+](https://www.python.org/downloads/). For JavaScript/TypeScript courses you also need [Node.js 24+](https://nodejs.org/). A modern browser.
 
 1. **Download** this repository: **Code → Download ZIP** on GitHub, then unzip it. Or clone it:
@@ -159,6 +169,8 @@ server.py (Python standard library only)
 - **No database, no build step, no accounts.** The server has no third-party dependencies.
 - Learner code runs as a real local process with a 60-second limit. Python exercises use the course's `.venv` if it exists, so they can import real packages; JavaScript and TypeScript run on Node 24, which runs `.ts` directly.
 - Hidden tests run in a temporary folder. The browser never receives a test file or a solution unless the learner clicks **Show solution**.
+
+The web version is the same `web/` folder served as static files: `python3 server.py build-web site/` writes it, with each pack bundled into one JSON file. With no server, `web/local.js` answers the same API from IndexedDB and `web/runner.js` runs code in Web Workers (`py-worker.js` with Pyodide, `js-worker.js` with the TypeScript compiler). GitHub Actions publishes it to GitHub Pages on every push to `main`.
 
 More detail is in [CONTRIBUTING.md](CONTRIBUTING.md#architecture).
 
