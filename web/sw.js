@@ -14,14 +14,21 @@ const REFRESH = /^https:\/\/(fonts\.googleapis\.com|pypi\.org)\//;
 
 self.addEventListener("install", (e) => {
   e.waitUntil((async () => {
-    const cache = await caches.open(SHELL);
+    const shell = await caches.open(SHELL), runtime = await caches.open(RUNTIME);
     const html = await (await fetch("./", { cache: "no-cache" })).text();
     const refs = [...html.matchAll(/(?:src|href)="([^"#]+)"/g)].map((m) => m[1]).filter((u) => !u.startsWith("data:"));
-    const own = ["./", "py-worker.js", "js-worker.js", "packs/index.json"].map((u) => (u.endsWith(".js") ? `${u}?v=${BUILD}` : u));
     const index = await (await fetch("packs/index.json", { cache: "no-cache" })).json().catch(() => []);
-    const packs = index.map((c) => `packs/${encodeURIComponent(c.id)}.json`);
+    // This build's own files (small, versioned) go in this build's cache. Libraries and course packs live in
+    // the long-lived cache and are only downloaded if missing, so a new release doesn't re-download megabytes
+    // while the learner's page is loading.
+    const own = ["./", "packs/index.json", `py-worker.js?v=${BUILD}`, `js-worker.js?v=${BUILD}`, ...refs.filter((u) => !u.startsWith("http"))];
+    const shared = [...refs.filter((u) => u.startsWith("http")), ...index.map((c) => `packs/${encodeURIComponent(c.id)}.json`)];
+    const req = (u) => new Request(u, { mode: u.startsWith("http") ? "cors" : "same-origin" });
     // One failed file shouldn't stop the rest from being cached.
-    await Promise.all([...own, ...refs, ...packs].map((u) => cache.add(new Request(u, { mode: u.startsWith("http") ? "cors" : "same-origin" })).catch(() => {})));
+    await Promise.all([
+      ...own.map((u) => shell.add(req(u)).catch(() => {})),
+      ...shared.map(async (u) => { if (!(await runtime.match(u))) await runtime.add(req(u)).catch(() => {}); }),
+    ]);
     self.skipWaiting();
   })());
 });
@@ -58,5 +65,5 @@ self.addEventListener("fetch", (e) => {
   if (new URL(url).origin !== location.origin) return;  // YouTube and everything else: straight to the network
   // Pages are all the same index.html (routes live in the #hash).
   const key = req.mode === "navigate" ? new Request("./") : req;
-  e.respondWith(staleWhileRevalidate(key, SHELL));
+  e.respondWith(staleWhileRevalidate(key, new URL(url).pathname.includes("/packs/") && !url.endsWith("index.json") ? RUNTIME : SHELL));
 });
