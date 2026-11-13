@@ -238,6 +238,9 @@ button.side-section-head:hover { background: var(--sunken); }
 .course-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
 .course-card { display: block; text-decoration: none; color: var(--ink); transition: transform .15s, box-shadow .2s, border-color .15s; }
 .course-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+.course-card.is-loading { border-color: var(--accent); cursor: progress; pointer-events: none; }
+.course-card.is-loading p:last-child { color: var(--ink); }
+.loading-page { color: var(--muted); padding: 40px 0; }
 .course-card h2 { margin: 0 0 6px; font-size: 20px; }
 .course-card p { color: var(--muted); font-size: 14px; margin: 0 0 16px; }
 

@@ -281,6 +281,7 @@ document.body.classList.toggle("side-collapsed", !!store.get("sideCollapsed"));
 paintMenuBtn();
 
 // ---------- routing ----------
+let routeSeq = 0;  // declared before the first route() call below
 window.addEventListener("hashchange", route);
 route();
 
@@ -300,16 +301,20 @@ if (STATIC) {
 
 async function route() {
   const parts = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean).map(decodeURIComponent);
+  const seq = ++routeSeq, stale = () => seq !== routeSeq;  // a newer click wins; older loads don't render
   $("#sidebar").classList.remove("open");
   Notes.save.flush();
   S.editors = [];
   try {
     if (!S.courses) S.courses = await api("/courses");
+    if (stale()) return;
     if (!parts.length) {
       if (S.courses.length === 1 && !STATIC) return void location.replace(`#/${S.courses[0].id}`);
       return renderHome();
     }
+    if (S.cid !== parts[0]) showOpening(parts[0]);
     await loadCourse(parts[0]);
+    if (stale()) return;
     const [, kind, id] = parts;
     S.studyPage = ["l", "p", "review"].includes(kind);  // time on these pages counts as study
     if (kind === "l") return renderLesson(id);
@@ -317,7 +322,23 @@ async function route() {
     if (kind === "review") return feature("review") ? renderReview() : renderDashboard();
     return renderDashboard();
   } catch (e) {
-    $("#main").innerHTML = `<div class="page"><div class="error-box">Couldn't load this page: ${esc(e.message)}. Check the terminal running <code>server.py</code>.</div></div>`;
+    if (stale()) return;
+    $("#main").innerHTML = `<div class="page"><div class="error-box">Couldn't load this page: ${esc(e.message)}. ${STATIC ? `Check your internet connection and <a href="${esc(location.hash)}" onclick="location.reload()">try again</a>.` : "Check the terminal running <code>server.py</code>."}</div></div>`;
+  }
+}
+
+// Opening a course can mean downloading it first, so show that straight away: on the card that was
+// clicked, or as a loading page when the link was opened directly.
+function showOpening(cid) {
+  const title = S.courses?.find((c) => c.id === cid)?.title || "the course";
+  const card = document.querySelector(`a.course-card[href="#/${CSS.escape(cid)}"]`);
+  if (card) {
+    document.querySelectorAll(".course-card.is-loading").forEach((c) => c.classList.remove("is-loading"));
+    card.classList.add("is-loading"); card.setAttribute("aria-busy", "true");
+    const p = card.querySelector("p:last-child");
+    if (p) p.innerHTML = `<span class="spinner" aria-hidden="true"></span>Opening ${esc(title)}…`;
+  } else {
+    $("#main").innerHTML = `<div class="page"><p class="loading-page" role="status"><span class="spinner" aria-hidden="true"></span>Opening ${esc(title)}…</p></div>`;
   }
 }
 
