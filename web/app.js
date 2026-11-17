@@ -521,7 +521,7 @@ function renderLesson(id) {
       <button class="btn ghost done-btn ${isDone(l.id) ? "is-done" : ""}" id="done-btn"></button>
       <div class="nav">
         ${prev ? `<a class="btn ghost small" href="#/${S.cid}/l/${prev.id}">Previous</a>` : ""}
-        ${next ? `<a class="btn small" href="#/${S.cid}/l/${next.id}">Next: ${esc(next.title)}</a>` : ""}
+        ${next ? `<a class="btn small" id="next-lesson" href="#/${S.cid}/l/${next.id}">Next: ${esc(next.title)}</a>` : ""}
         ${l.section.project ? `<a class="btn ghost small" href="#/${S.cid}/p/${l.section.id}">Section project</a>` : ""}
       </div>
     </div></article>`;
@@ -538,10 +538,13 @@ function renderLesson(id) {
   const doneBtn = $("#done-btn");
   const paint = () => { doneBtn.innerHTML = isDone(l.id) ? `<span class="done-check">✓</span> Done` : "Mark as done"; doneBtn.classList.toggle("is-done", isDone(l.id)); };
   paint();
-  doneBtn.onclick = () => {
-    S.state.done = isDone(l.id) ? S.state.done.filter((x) => x !== l.id) : [...S.state.done, l.id];
+  const setDone = (done) => {
+    if (isDone(l.id) === done) return;
+    S.state.done = done ? [...S.state.done, l.id] : S.state.done.filter((x) => x !== l.id);
     saveState(); paint(); renderSidebar(); renderProgress();
   };
+  doneBtn.onclick = () => setDone(!isDone(l.id));
+  $("#next-lesson")?.addEventListener("click", () => setDone(true));
 
   const host = $("#practice");
   (l.practice || []).forEach((p) => host.append(p.type === "quiz" ? quizCard(p) : codeCard(p)));
