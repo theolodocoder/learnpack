@@ -1,6 +1,14 @@
 # Getting started
 
-This guide takes you from download to your first finished exercise, in about five minutes.
+## Use it in your browser
+
+Open [LearnPack in your browser](https://theolodocoder.github.io/learnpack/) and pick a course. You don't need to install anything.
+
+- Your progress and notes stay in that browser on that device. On a course page, click **Back up** to save them to a file.
+- After a successful online visit has cached the app and courses, you can study offline. An exercise may need internet the first time it loads its runtime or packages. Embedded videos still need internet.
+- To import a course, drop a `.learnpack.json` file or a `.zip` of a pack folder onto **Add a course** on the home page, or click **Choose a file**.
+
+Use the local setup below to run exercises that call an AI API with your own key. The steps take you from download to your first finished exercise in about five minutes.
 
 ## 1. Install what it needs
 
