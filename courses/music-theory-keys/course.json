@@ -13,7 +13,7 @@
     "python": []
   },
   "support": "support",
-  "theme": { "cover": { "light": "cover-light.png", "dark": "cover-dark.png" },
+  "theme": { "cover": { "light": "cover-light.webp", "dark": "cover-dark.webp" },
     "accent": "#7C3AED"
   },
   "features": {

@@ -95,7 +95,7 @@ Example: a reading-only course with no timer or review:
 ### `theme`: how it looks
 
 - `accent`: the course's colour for buttons, progress bars, highlights and the like.
-- `cover`: card art for the home page, shown above the course's title. Either one image (`"cover": "cover.png"`) or one per theme (`"cover": { "light": "cover-light.png", "dark": "cover-dark.png" }`). Use PNG, JPG, WebP or SVG at 16:9, for example 1200×675 px. Keep the art free of text: the card already shows the title and description.
+- `cover`: card art for the home page, shown above the course's title. Either one image (`"cover": "cover.png"`) or one per theme (`"cover": { "light": "cover-light.png", "dark": "cover-dark.png" }`). Use PNG, JPG, WebP or SVG at 16:9, for example 960×540 px. WebP keeps the home page fast: `cwebp -q 80 cover.png -o cover.webp` is usually about a tenth of the PNG's size. Keep the art free of text: the card already shows the title and description.
 - `css`: an **add-on stylesheet** inside the pack. It loads after the platform's styles, so it can restyle anything. The simplest way is to override the design tokens:
 
 ```css
