@@ -1,0 +1,339 @@
+{
+  "id": "mt-scales",
+  "title": "Scales and keys",
+  "summary": "Build any major scale from one formula, find its relative minor, and read key signatures with the circle of fifths. Project: your scale sheet.",
+  "status": "ready",
+  "lessons": [
+    {
+      "id": "mt-major-scale",
+      "title": "The major scale formula",
+      "duration": "40 min",
+      "videos": [
+        {
+          "youtube": "QWnTVipZgT4",
+          "title": "Music theory for dum-dums, full beginner course (Piano With Corey)",
+          "clips": [
+            {
+              "title": "How to make scales",
+              "start": 584,
+              "end": 690,
+              "then": "mt-q-why-scales"
+            },
+            {
+              "title": "The golden scale formula",
+              "start": 690,
+              "end": 966,
+              "then": "mt-x-major-scale"
+            }
+          ]
+        }
+      ],
+      "body": {
+        "file": "lessons/mt-scales/mt-major-scale.md"
+      },
+      "resources": [
+        {
+          "title": "musictheory.net lessons",
+          "url": "https://www.musictheory.net/lessons"
+        },
+        {
+          "title": "Ableton: Learning Music",
+          "url": "https://learningmusic.ableton.com/"
+        },
+        {
+          "title": "musictheory.net exercises",
+          "url": "https://www.musictheory.net/exercises"
+        }
+      ],
+      "practice": [
+        {
+          "id": "mt-q-why-scales",
+          "type": "quiz",
+          "question": "Why is it useful to know a song's scale?",
+          "options": [
+            "It lists every chord in the song in order",
+            "It gives you the set of notes the melody and chords mostly use, so you know which keys to reach for",
+            "It tells you the tempo",
+            "It is only needed for reading sheet music"
+          ],
+          "answer": 1,
+          "explanation": "A song mostly uses the seven notes of its scale. Knowing the scale narrows twelve possible notes down to seven, which makes finding melodies and chords much faster."
+        },
+        {
+          "id": "mt-q-major-formula",
+          "type": "quiz",
+          "question": "Which pattern builds a major scale from any root?",
+          "options": [
+            "W H W W H W W",
+            "W W W H W W H",
+            "W W H W W W H",
+            "H W W W H W W"
+          ],
+          "answer": 2,
+          "explanation": "Major is W W H W W W H, or 2 2 1 2 2 2 1 half steps. On the white keys from C, the half steps fall at E-F and B-C."
+        },
+        {
+          "id": "mt-q-f-major-bb",
+          "type": "quiz",
+          "question": "Someone writes F major as F G A A# C D E. What is wrong?",
+          "options": [
+            "Nothing, A# and Bb are the same key",
+            "The fourth note should be written Bb, so each letter appears once",
+            "The fourth note should be B",
+            "The scale should start on C"
+          ],
+          "answer": 1,
+          "explanation": "A# and Bb are the same key, but a major scale uses each letter once. With A# there are two As and no B. The correct spelling is F G A Bb C D E."
+        },
+        {
+          "id": "mt-q-sharps-in-a",
+          "type": "quiz",
+          "question": "You are asked to play in A major. Which notes are black keys?",
+          "options": [
+            "F#, C# and G#",
+            "Bb and Eb",
+            "F# only",
+            "C# and D#"
+          ],
+          "answer": 0,
+          "explanation": "Apply W W H W W W H from A: A B C# D E F# G#. The black keys are C#, F# and G#."
+        },
+        {
+          "id": "mt-x-major-scale",
+          "type": "code",
+          "title": "Build major scales",
+          "prompt": {
+            "file": "practice/mt-x-major-scale/prompt.md"
+          },
+          "starter": {
+            "file": "practice/mt-x-major-scale/starter.py"
+          },
+          "tests": {
+            "file": "practice/mt-x-major-scale/tests.py"
+          },
+          "solution": {
+            "file": "practice/mt-x-major-scale/solution.py"
+          }
+        }
+      ]
+    },
+    {
+      "id": "mt-minor-scales",
+      "title": "Minor scales and relative keys",
+      "duration": "40 min",
+      "videos": [
+        {
+          "youtube": "rsRTCWPdqUQ",
+          "title": "Beginner's guide to music theory (Chris Laps)",
+          "clips": [
+            {
+              "title": "The minor scale",
+              "start": 370,
+              "end": 452,
+              "then": "mt-q-minor"
+            },
+            {
+              "title": "Relative keys",
+              "start": 452,
+              "end": 496,
+              "then": "mt-x-relative-minor"
+            }
+          ]
+        }
+      ],
+      "body": {
+        "file": "lessons/mt-scales/mt-minor-scales.md"
+      },
+      "resources": [
+        {
+          "title": "musictheory.net lessons",
+          "url": "https://www.musictheory.net/lessons"
+        },
+        {
+          "title": "Open Music Theory",
+          "url": "https://openmusictheory.github.io/"
+        },
+        {
+          "title": "Lightnote: interactive music theory",
+          "url": "https://www.lightnote.co/"
+        }
+      ],
+      "practice": [
+        {
+          "id": "mt-q-minor",
+          "type": "quiz",
+          "question": "What is the formula for the natural minor scale?",
+          "options": [
+            "W W H W W W H",
+            "W H W W H W W",
+            "H W W H W W W",
+            "W H W W W H W"
+          ],
+          "answer": 1,
+          "explanation": "Natural minor is W H W W H W W. From A that gives A B C D E F G, all white keys. Compared with major, the 3rd, 6th and 7th are a half step lower."
+        },
+        {
+          "id": "mt-q-relative-of-f",
+          "type": "quiz",
+          "question": "A song switches from F major to its relative minor for the bridge. Which minor key is that?",
+          "options": [
+            "F minor",
+            "A minor",
+            "D minor",
+            "C minor"
+          ],
+          "answer": 2,
+          "explanation": "The relative minor is the 6th note of the major scale: F G A Bb C D, so D. Or count three half steps down from F: E, Eb, D. F minor would be the parallel minor."
+        },
+        {
+          "id": "mt-q-harmonic-minor",
+          "type": "quiz",
+          "question": "In a song in A minor you hear a G# leading back to A. Where does the G# come from?",
+          "options": [
+            "It is a mistake",
+            "The harmonic minor scale, which raises the 7th",
+            "The relative major",
+            "A minor always has G#"
+          ],
+          "answer": 1,
+          "explanation": "Harmonic minor raises the 7th note so it sits a half step below the root. In A that turns G into G#, which pulls strongly back to A."
+        },
+        {
+          "id": "mt-x-relative-minor",
+          "type": "code",
+          "title": "Relative minors",
+          "prompt": {
+            "file": "practice/mt-x-relative-minor/prompt.md"
+          },
+          "starter": {
+            "file": "practice/mt-x-relative-minor/starter.py"
+          },
+          "tests": {
+            "file": "practice/mt-x-relative-minor/tests.py"
+          },
+          "solution": {
+            "file": "practice/mt-x-relative-minor/solution.py"
+          }
+        }
+      ]
+    },
+    {
+      "id": "mt-key-signatures",
+      "title": "Key signatures and the circle of fifths",
+      "duration": "45 min",
+      "videos": [
+        {
+          "youtube": "Ud9CpGOG1GE",
+          "title": "Learn piano theory (Marks Piano)",
+          "clips": [
+            {
+              "title": "Key signatures",
+              "start": 2071,
+              "end": 2277,
+              "then": "mt-q-key-signature"
+            },
+            {
+              "title": "The circle of fifths",
+              "start": 3856,
+              "end": 4246,
+              "then": "mt-x-circle"
+            }
+          ]
+        }
+      ],
+      "body": {
+        "file": "lessons/mt-scales/mt-key-signatures.md"
+      },
+      "resources": [
+        {
+          "title": "musictheory.net lessons",
+          "url": "https://www.musictheory.net/lessons"
+        },
+        {
+          "title": "musictheory.net exercises",
+          "url": "https://www.musictheory.net/exercises"
+        },
+        {
+          "title": "teoria.com",
+          "url": "https://www.teoria.com/"
+        }
+      ],
+      "practice": [
+        {
+          "id": "mt-q-key-signature",
+          "type": "quiz",
+          "question": "A chord chart shows two sharps at the start of each line. Which major key is it?",
+          "options": [
+            "G major",
+            "D major",
+            "A major",
+            "Bb major"
+          ],
+          "answer": 1,
+          "explanation": "Sharps are added in the order F#, C#, G#... Two sharps means F# and C#. The key is a half step above the last sharp: C# up a half step is D. (It could also be the relative minor, B minor.)"
+        },
+        {
+          "id": "mt-q-three-flats",
+          "type": "quiz",
+          "question": "A chart has three flats: Bb, Eb and Ab. Which major key is it in?",
+          "options": [
+            "Ab major",
+            "Bb major",
+            "Eb major",
+            "F major"
+          ],
+          "answer": 2,
+          "explanation": "For flat keys, the key is the second-to-last flat. Bb, Eb, Ab: the second-to-last is Eb, so Eb major (or its relative, C minor)."
+        },
+        {
+          "id": "mt-q-circle-direction",
+          "type": "quiz",
+          "question": "On the circle of fifths, what happens each time you move one step clockwise?",
+          "options": [
+            "The key goes up a fourth and adds a flat",
+            "The key goes up a fifth and adds a sharp (or loses a flat)",
+            "The key goes up a half step",
+            "The key changes from major to minor"
+          ],
+          "answer": 1,
+          "explanation": "Clockwise is up a fifth, seven half steps: C, G, D, A... Each step adds one sharp, or removes one flat on the flat side (Eb -> Bb -> F)."
+        },
+        {
+          "id": "mt-x-circle",
+          "type": "code",
+          "title": "Key signatures and the circle",
+          "prompt": {
+            "file": "practice/mt-x-circle/prompt.md"
+          },
+          "starter": {
+            "file": "practice/mt-x-circle/starter.py"
+          },
+          "tests": {
+            "file": "practice/mt-x-circle/tests.py"
+          },
+          "solution": {
+            "file": "practice/mt-x-circle/solution.py"
+          }
+        }
+      ]
+    }
+  ],
+  "project": {
+    "id": "mt-scales-project",
+    "title": "Your scale sheet",
+    "brief": {
+      "file": "projects/mt-scales.md"
+    },
+    "checklist": [
+      "C, G, D, F and Bb major written out with correct letter names",
+      "W W H W W W H marked between the notes of each major scale",
+      "Relative minor of each key written: A, E, B, D and G natural minor",
+      "Number of sharps or flats written next to each key",
+      "All five major scales played up and down, hands separately, at a steady speed",
+      "All five relative minor scales played up and down",
+      "One major scale and its relative minor recorded back to back",
+      "The five keys placed on a hand-drawn circle of fifths"
+    ],
+    "links": false
+  }
+}

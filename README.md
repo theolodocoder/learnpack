@@ -25,6 +25,7 @@ The platform knows nothing about any subject. Every course is a **course pack**:
 courses/
 ├── ai-engineering/        ← included, free: Python → shipping LLM products in 3 months
 ├── software-engineering/  ← included, free: zero → job-ready junior engineer
+├── music-theory-keys/     ← included, free: notes to gospel and Afro progressions on the keys
 └── your-course/           ← write your own: docs/writing-packs.md
 ```
 
@@ -116,6 +117,13 @@ Every video and link was checked to exist before release. Every exercise's refer
 From never having programmed to a hireable junior software engineer: how computers and the terminal work, Python, debugging, Git and GitHub, clean code, testing, data structures and algorithms, SQL, HTTP and building APIs, shipping software, working on a team, and interviews.
 
 That's 66 lessons, 122 exercises with hidden tests, 138 quizzes and a project for every section. Every exercise uses only Python's standard library (plus FastAPI in the web section), so all of them also run in the web version.
+
+### Music Theory for the Keys
+*`courses/music-theory-keys/`: fill-in exercises, no coding needed*
+
+Notes, half and whole steps, scales and key signatures, intervals, triads, seventh chords and inversions, the number system, transposing for a singer or choir, the gospel 2-5-1, time signatures and the 12/8 feel, ear training, and working out a real song. It's taught from the keyboard, with examples from gospel and Afro styles.
+
+That's 16 lessons, 16 exercises, 52 quizzes and a keyboard project for every section. Each long video is cut into short clips at the creator's own chapter marks, with practice after each clip. The exercises are fill-in answers (`["D", "F#", "A"]`), and C# or Db both count.
 
 More course packs will be available separately. Any pack drops into `courses/` the same way.
 
