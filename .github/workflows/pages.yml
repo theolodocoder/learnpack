@@ -31,5 +31,7 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
+      # ponytail: GitHub sometimes can't see a just-uploaded artifact yet; drop when deploys stop flaking
+      - run: sleep 20
       - id: deployment
         uses: actions/deploy-pages@v4
