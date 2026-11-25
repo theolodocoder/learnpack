@@ -452,11 +452,19 @@ function renderHome() {
              : `<p>Each course is a folder in <code>courses/</code>. Copy <code>courses/_template</code> to make a new one.</p>`}</div>
     ${S.courses.length ? `<div class="course-grid">${S.courses.map((c) => {
       const pct = c.total ? Math.round((c.done / c.total) * 100) : 0;
-      return `<a class="card course-card" href="#/${esc(c.id)}"><h2>${esc(c.title)}</h2><p>${esc(c.description)}</p>
+      return `<a class="card course-card" href="#/${esc(c.id)}">${courseCover(c.cover)}<h2>${esc(c.title)}</h2><p>${esc(c.description)}</p>
         <div class="lava-track"><div class="lava-fill" style="width:${pct}%"></div></div>
         <p style="margin:8px 0 0">${c.done} of ${c.total} lessons done</p></a>`;
     }).join("")}${STATIC ? addCourseCard() : ""}</div>` : (STATIC ? `<div class="course-grid">${addCourseCard()}</div>` : `<p class="empty">No courses yet. Add a folder with a <code>course.json</code> to <code>courses/</code>.</p>`)}</div>`;
   if (STATIC) wireAddCourse();
+}
+
+// A pack's card art (theme.cover): one image for both themes, or a light and a dark one that follow the theme.
+function courseCover(cover) {
+  if (!cover) return "";
+  const light = cover.light || cover.dark, dark = cover.dark || cover.light;
+  const img = (src, cls) => `<img class="${cls}" src="${esc(src)}" alt="" decoding="async">`;
+  return `<span class="course-cover">${light === dark ? img(light, "") : img(light, "cover-light") + img(dark, "cover-dark")}</span>`;
 }
 
 function nextLesson() {
@@ -491,7 +499,7 @@ function renderDashboard() {
 function playerHtml(v, fallbackTitle, play = false, clip = null) {
   const title = esc(clip?.title || v.title || fallbackTitle);
   if (play) return `<iframe src="${ytSrc(v, true, clip)}" title="${title}" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
-  const thumb = v.youtube ? `<img src="https://i.ytimg.com/vi/${encodeURIComponent(v.youtube)}/hqdefault.jpg" alt="" loading="lazy" decoding="async">` : "";
+  const thumb = v.youtube ? `<img src="https://i.ytimg.com/vi/${encodeURIComponent(v.youtube)}/hqdefault.jpg" alt="" decoding="async">` : "";
   return `<button class="yt-poster" aria-label="Play video: ${title}">${thumb}<span class="yt-play" aria-hidden="true"></span></button>`;
 }
 

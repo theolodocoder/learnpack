@@ -286,6 +286,16 @@ button.side-section-head:hover { background: var(--sunken); }
 .course-card.is-loading { border-color: var(--accent); cursor: progress; pointer-events: none; }
 .course-card.is-loading p:last-child { color: var(--ink); }
 .loading-page { color: var(--muted); padding: 40px 0; }
+.course-cover { display: block; margin: -20px -20px 16px; aspect-ratio: 16 / 9; overflow: hidden; background: var(--sunken);
+  border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0; border-bottom: 1px solid var(--line); }
+.course-cover img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.course-cover .cover-dark { display: none; }
+:root[data-theme="dark"] .course-cover .cover-light { display: none; }
+:root[data-theme="dark"] .course-cover .cover-dark { display: block; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .course-cover .cover-light { display: none; }
+  :root:not([data-theme="light"]) .course-cover .cover-dark { display: block; }
+}
 .course-card h2 { margin: 0 0 6px; font-size: 20px; }
 .course-card p { color: var(--muted); font-size: 14px; margin: 0 0 16px; }
 

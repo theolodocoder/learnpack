@@ -109,3 +109,14 @@ def test_clips_need_youtube_not_playlist(tmp_path):
     lesson = clip_lesson([{"title": "x", "start": 0, "end": 60}], video={"playlist": "PL123", "title": "List"})
     probs = " | ".join(validate_pack(make_pack(tmp_path, course_with(lesson))))
     assert "clip" in probs and "playlist" in probs
+
+
+def test_theme_cover_checked(tmp_path):
+    for d in ("ok", "missing", "wrong"):
+        (tmp_path / d).mkdir()
+    ok = make_pack(tmp_path / "ok", course_with(theme={"cover": {"light": "a.png", "dark": "b.png"}}), {"a.png": "x", "b.png": "x"})
+    assert validate_pack(ok) == []
+    missing = make_pack(tmp_path / "missing", course_with(theme={"cover": "nope.png"}))
+    assert any("theme.cover" in p and "missing" in p for p in validate_pack(missing))
+    wrong = make_pack(tmp_path / "wrong", course_with(theme={"cover": "notes.txt"}), {"notes.txt": "x"})
+    assert any("theme.cover" in p for p in validate_pack(wrong))

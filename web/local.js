@@ -98,7 +98,8 @@ window.LocalBackend = (() => {
       if (imported) { const ls = lessonsOf(summaryOrCourse); total = ls.length; ids = new Set(ls.map((l) => l.id)); }
       const done = ids ? st.done.filter((d) => ids.has(d)).length : st.done.length;
       out.push({ id: summaryOrCourse.id, title: summaryOrCourse.title, description: summaryOrCourse.description || "",
-                 accent: summaryOrCourse.theme?.accent || summaryOrCourse.accent || null, total, done: Math.min(done, total), imported });
+                 accent: summaryOrCourse.theme?.accent || summaryOrCourse.accent || null, total, done: Math.min(done, total), imported,
+                 cover: summaryOrCourse.cover || summaryOrCourse._cover || null });
     };
     for (const s of await bundledIndex()) if (!(await get(`pack:${s.id}`))) await add(s, false);
     for (const [, c] of await entries("pack:")) await add(c, true);
@@ -181,14 +182,14 @@ window.LocalBackend = (() => {
     const cj = Object.keys(zip.files).filter((n) => /(^|\/)course\.json$/.test(n)).sort((a, b) => a.length - b.length)[0];
     if (!cj) throw new Error("That ZIP doesn't contain a course.json.");
     const root = cj.slice(0, -"course.json".length);
-    const read = async (rel) => {
+    const read = async (rel, type = "string") => {
       const parts = [];
       for (const seg of (root + rel).split("/")) { if (seg === "..") parts.pop(); else if (seg && seg !== ".") parts.push(seg); }
       const name = parts.join("/");
       if (!name.startsWith(root.replace(/\/$/, "")) && root) throw new Error(`A file points outside the pack: ${rel}`);
       const f = zip.file(name);
       if (!f) throw new Error(`The pack is missing a file: ${rel}`);
-      return f.async("string");
+      return f.async(type);
     };
     const resolve = async (node) => {
       if (Array.isArray(node)) return Promise.all(node.map(resolve));
@@ -213,6 +214,15 @@ window.LocalBackend = (() => {
       }
     }
     if (c.theme?.css) c._themeCss = await read(c.theme.css);
+    if (c.theme?.cover) {  // the card cover, kept inside the stored pack as data URLs
+      const MIME = { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", webp: "image/webp", svg: "image/svg+xml" };
+      const rels = typeof c.theme.cover === "string" ? { light: c.theme.cover } : c.theme.cover;
+      c._cover = {};
+      for (const [mode, rel] of Object.entries(rels)) {
+        const mime = MIME[rel.split(".").pop().toLowerCase()];
+        if (mime) c._cover[mode] = `data:${mime};base64,${await read(rel, "base64")}`;
+      }
+    }
     return c;
   }
   async function addPack(file) {
