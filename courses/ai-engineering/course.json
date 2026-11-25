@@ -26,7 +26,7 @@
     "studyStats": true,
     "review": true
   },
-  "theme": {
+  "theme": { "cover": { "light": "cover-light.png", "dark": "cover-dark.png" },
     "accent": "#E2401C"
   },
   "support": "support",

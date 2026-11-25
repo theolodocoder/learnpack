@@ -20,7 +20,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlparse
 
-from engine.pack import (ID_RE, PackError, find_practice, lessons, list_packs, load_pack,
+from engine.pack import (COVER_TYPES, ID_RE, PackError, cover_files, find_practice, lessons, list_packs, load_pack,
                          practice_items, practice_lang, public_course, validate_pack)
 from engine.browse import BrowseError, browse
 from engine.runner import check_code, run_code
@@ -178,6 +178,13 @@ def make_handler(app: App, port: int):
                 if css and (pack / css).resolve().is_relative_to(pack.resolve()) and (pack / css).is_file():
                     return self.send(200, (pack / css).read_bytes(), "text/css")
                 return self.send(404, "not found", "text/plain")
+            m = re.fullmatch(r"/packs/([a-z0-9-]+)/cover-(light|dark)", path)
+            if m:  # a pack's card cover (theme.cover in course.json); validated to stay inside the pack
+                course, pack = app.course(m[1])
+                f = cover_files(course, pack).get(m[2]) if course else None
+                if f:
+                    return self.send(200, f.read_bytes(), COVER_TYPES[f.suffix.lower()])
+                return self.send(404, "not found", "text/plain")
             f = (WEB / path.lstrip("/")).resolve()
             if f.is_relative_to(WEB) and f.is_file() and f.suffix in STATIC_TYPES:
                 return self.send(200, f.read_bytes(), STATIC_TYPES[f.suffix])
@@ -197,7 +204,8 @@ def make_handler(app: App, port: int):
                     total = sum(1 for _ in lessons(c))
                     done = len(set(app.state(cid)["done"]) & {l["id"] for _, l in lessons(c)})
                     out.append({"id": cid, "title": c["title"], "description": c.get("description", ""),
-                                "accent": c.get("theme", {}).get("accent"), "total": total, "done": done})
+                                "accent": c.get("theme", {}).get("accent"), "total": total, "done": done,
+                                "cover": {m: f"/packs/{cid}/cover-{m}" for m in cover_files(c, pack)} or None})
                 return self.send(200, out)
             if len(parts) < 2 or parts[0] != "courses":
                 return self.send(404, {"error": "not found"})

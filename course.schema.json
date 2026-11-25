@@ -103,6 +103,26 @@
         "css": {
           "type": "string",
           "description": "Add-on stylesheet in the pack, loaded after the platform's; override tokens like --accent, --radius, --font-body"
+        },
+        "cover": {
+          "description": "Card art for the home page (16:9, no text): one image path, or {\"light\": path, \"dark\": path}",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "light": {
+                  "type": "string"
+                },
+                "dark": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
         }
       }
     },

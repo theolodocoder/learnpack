@@ -30,6 +30,31 @@ def _read(pack_dir: Path, rel: str) -> str:
     return path.read_text(encoding="utf-8")
 
 
+COVER_TYPES = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".svg": "image/svg+xml"}
+
+
+def cover_files(course: dict, pack_dir: Path) -> dict:
+    """theme.cover as {"light": Path, "dark": Path}. One image may be given for both; empty if none."""
+    cover = (course.get("theme") or {}).get("cover")
+    if not cover:
+        return {}
+    rels = cover if isinstance(cover, dict) else {"light": cover, "dark": cover}
+    if set(rels) - {"light", "dark"} or not all(isinstance(r, str) for r in rels.values()):
+        raise PackError('theme.cover must be an image path, or {"light": ..., "dark": ...}')
+    out = {}
+    for mode in ("light", "dark"):
+        rel = rels.get(mode) or rels.get("light" if mode == "dark" else "dark")
+        path = (pack_dir / rel).resolve()
+        if not path.is_relative_to(Path(pack_dir).resolve()):
+            raise PackError(f"file outside pack: {rel}")
+        if not path.is_file():
+            raise PackError(f"missing file: {rel}")
+        if path.suffix.lower() not in COVER_TYPES:
+            raise PackError(f"{rel}: covers must be {', '.join(COVER_TYPES)}")
+        out[mode] = path
+    return out
+
+
 def _resolve(node, pack_dir: Path):
     """Replace every {"file": ...} text field with the file's contents."""
     if isinstance(node, list):
@@ -117,6 +142,10 @@ def validate_pack(pack_dir: Path) -> list[str]:
             _read(Path(pack_dir), theme["css"])
         except PackError as e:
             problems.append(f"course: theme.css: {e}")
+    try:
+        cover_files(course, Path(pack_dir))
+    except PackError as e:
+        problems.append(f"course: theme.cover: {e}")
     for s in course.get("sections", []):
         sw = f"section {s.get('id')}"
         check_id(s, sw)

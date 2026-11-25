@@ -71,7 +71,7 @@ course
 | `language` | no | Default language for code exercises: `python` (default), `javascript` or `typescript`. Each exercise can override it. |
 | `requirements` | no | What learners must install. `{ "python": ["fastapi", ...], "node": ">=24" }` |
 | `features` | no | Turns interface features off for this course. All default to `true`. See below. |
-| `theme` | no | `{ "accent": "#4F46E5", "css": "theme.css" }`. See below. |
+| `theme` | no | `{ "accent": "#4F46E5", "css": "theme.css", "cover": "cover.png" }`. See below. |
 | `support` | no | A folder of helper files exercise code can import (e.g. a fake API client for offline tests). |
 | `sections` | yes | The course content, in order. |
 
@@ -95,6 +95,7 @@ Example: a reading-only course with no timer or review:
 ### `theme`: how it looks
 
 - `accent`: the course's colour for buttons, progress bars, highlights and the like.
+- `cover`: card art for the home page, shown above the course's title. Either one image (`"cover": "cover.png"`) or one per theme (`"cover": { "light": "cover-light.png", "dark": "cover-dark.png" }`). Use PNG, JPG, WebP or SVG at 16:9, for example 1200×675 px. Keep the art free of text: the card already shows the title and description.
 - `css`: an **add-on stylesheet** inside the pack. It loads after the platform's styles, so it can restyle anything. The simplest way is to override the design tokens:
 
 ```css
@@ -189,7 +190,7 @@ The checklist items are ticked off by the learner. `links: true` adds fields for
 
 - Ids are unique across the whole course and match `^[a-z0-9][a-z0-9-]{0,63}$`.
 - File references stay inside the pack.
-- Quiz `answer` is a valid option index. `language` is a supported language. `features` keys are known, and their values are true/false. `theme.accent` is a `#RRGGBB` colour. `theme.css` exists.
+- Quiz `answer` is a valid option index. `language` is a supported language. `features` keys are known, and their values are true/false. `theme.accent` is a `#RRGGBB` colour. `theme.css` exists. `theme.cover` images exist inside the pack and are PNG, JPG, WebP or SVG.
 - **Every code exercise's `solution` passes its own `tests`.** A pack whose answers fail its own tests is broken, and `validate` says which ones fail.
 
 ## What learners' data looks like (not part of the pack)
