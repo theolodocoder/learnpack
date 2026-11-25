@@ -1,0 +1,459 @@
+{
+  "id": "mt-chords",
+  "title": "Intervals and chords",
+  "summary": "Name intervals by counting half steps, then build major, minor, diminished, seventh and sus chords and their inversions. Project: a chord dictionary for one key.",
+  "status": "ready",
+  "lessons": [
+    {
+      "id": "mt-intervals",
+      "title": "Intervals",
+      "duration": "35 min",
+      "videos": [
+        {
+          "youtube": "QWnTVipZgT4",
+          "title": "Music theory for dum-dums, full beginner course (Piano With Corey)",
+          "clips": [
+            {
+              "title": "Intervals",
+              "start": 313,
+              "end": 363,
+              "then": "mt-q-interval"
+            }
+          ]
+        },
+        {
+          "youtube": "Ud9CpGOG1GE",
+          "title": "Learn piano theory (Marks Piano)",
+          "clips": [
+            {
+              "title": "Intervals in depth",
+              "start": 3106,
+              "end": 3424,
+              "then": "mt-x-intervals"
+            }
+          ]
+        }
+      ],
+      "body": {
+        "file": "lessons/mt-chords/mt-intervals.md"
+      },
+      "resources": [
+        {
+          "title": "musictheory.net lessons (intervals)",
+          "url": "https://www.musictheory.net/lessons"
+        },
+        {
+          "title": "Tone Dear ear training",
+          "url": "https://tonedear.com/"
+        }
+      ],
+      "practice": [
+        {
+          "id": "mt-q-interval",
+          "type": "quiz",
+          "question": "How many half steps is it from C up to G, and what is the interval called?",
+          "options": [
+            "5, a perfect fourth",
+            "7, a perfect fifth",
+            "6, a tritone",
+            "8, a minor sixth"
+          ],
+          "answer": 1,
+          "explanation": "Count from C without counting C itself: C#, D, D#, E, F, F#, G is 7 half steps. 7 half steps is a perfect fifth."
+        },
+        {
+          "id": "mt-x-intervals",
+          "type": "code",
+          "title": "Count and name intervals",
+          "prompt": {
+            "file": "practice/mt-x-intervals/prompt.md"
+          },
+          "starter": {
+            "file": "practice/mt-x-intervals/starter.py"
+          },
+          "tests": {
+            "file": "practice/mt-x-intervals/tests.py"
+          },
+          "solution": {
+            "file": "practice/mt-x-intervals/solution.py"
+          }
+        },
+        {
+          "id": "mt-q-minor-third-above-a",
+          "type": "quiz",
+          "question": "The music director asks for a minor third above A for the alto line. Which note do you play?",
+          "options": [
+            "B",
+            "C#",
+            "C",
+            "D"
+          ],
+          "answer": 2,
+          "explanation": "A minor third is 3 half steps: A#, B, C. So the note is C. C# would be 4 half steps, a major third."
+        },
+        {
+          "id": "mt-q-interval-flip",
+          "type": "quiz",
+          "question": "You know C up to F is a perfect fourth (5 half steps). What is F up to the next C?",
+          "options": [
+            "A perfect fifth, 7 half steps",
+            "A perfect fourth, 5 half steps",
+            "A major sixth, 9 half steps",
+            "An octave, 12 half steps"
+          ],
+          "answer": 0,
+          "explanation": "An interval and its flip add up to 12 half steps. 12 - 5 = 7, and 7 half steps is a perfect fifth: F#, G, G#, A, A#, B, C."
+        }
+      ]
+    },
+    {
+      "id": "mt-triads",
+      "title": "Major, minor and diminished triads",
+      "duration": "40 min",
+      "videos": [
+        {
+          "youtube": "rgaTLrZGlk0",
+          "title": "Learn music theory in half an hour (Andrew Huang)",
+          "clips": [
+            {
+              "title": "Chords",
+              "start": 612,
+              "end": 718,
+              "then": "mt-q-triad"
+            },
+            {
+              "title": "Major and minor",
+              "start": 718,
+              "end": 936,
+              "then": "mt-x-triads"
+            }
+          ]
+        },
+        {
+          "youtube": "Ud9CpGOG1GE",
+          "title": "Learn piano theory (Marks Piano)",
+          "clips": [
+            {
+              "title": "Diminished chords",
+              "start": 7108,
+              "end": 7254,
+              "then": "mt-q-diminished"
+            }
+          ]
+        }
+      ],
+      "body": {
+        "file": "lessons/mt-chords/mt-triads.md"
+      },
+      "resources": [
+        {
+          "title": "musictheory.net lessons (triads)",
+          "url": "https://www.musictheory.net/lessons"
+        },
+        {
+          "title": "musictheory.net exercises",
+          "url": "https://www.musictheory.net/exercises"
+        }
+      ],
+      "practice": [
+        {
+          "id": "mt-q-triad",
+          "type": "quiz",
+          "question": "A chart says D. Which notes make the D major triad?",
+          "options": [
+            "D F A",
+            "D F# A",
+            "D G A",
+            "D F# A#"
+          ],
+          "answer": 1,
+          "explanation": "Major is 4 then 3 half steps. D up 4 is F# (D#, E, F, F#), and F# up 3 is A (G, G#, A). D F A is D minor; D F# A# has an augmented fifth."
+        },
+        {
+          "id": "mt-x-triads",
+          "type": "code",
+          "title": "Build triads",
+          "prompt": {
+            "file": "practice/mt-x-triads/prompt.md"
+          },
+          "starter": {
+            "file": "practice/mt-x-triads/starter.py"
+          },
+          "tests": {
+            "file": "practice/mt-x-triads/tests.py"
+          },
+          "solution": {
+            "file": "practice/mt-x-triads/solution.py"
+          }
+        },
+        {
+          "id": "mt-q-diminished",
+          "type": "quiz",
+          "question": "Which triad is diminished?",
+          "options": [
+            "A C E",
+            "G B D",
+            "B D F",
+            "F A C"
+          ],
+          "answer": 2,
+          "explanation": "Measure the gaps. B to D is 3 half steps and D to F is 3: a diminished triad, with a tritone (6) from B to F. A C E is 3 + 4 (minor); G B D and F A C are 4 + 3 (major)."
+        },
+        {
+          "id": "mt-q-minor-triad",
+          "type": "quiz",
+          "question": "You're playing E major (E G# B) and the leader says \"make it minor\". What do you change?",
+          "options": [
+            "Lower G# to G",
+            "Lower B to Bb",
+            "Raise E to F",
+            "Lower all three notes by a half step"
+          ],
+          "answer": 0,
+          "explanation": "Major and minor share the root and fifth. Only the third moves: lower it one half step, G# to G, giving E G B (3 + 4)."
+        }
+      ]
+    },
+    {
+      "id": "mt-seventh-chords",
+      "title": "Seventh chords and sus chords",
+      "duration": "45 min",
+      "videos": [
+        {
+          "youtube": "Ud9CpGOG1GE",
+          "title": "Learn piano theory (Marks Piano)",
+          "clips": [
+            {
+              "title": "Major 7 chords",
+              "start": 6273,
+              "end": 6444,
+              "then": "mt-q-major-seven"
+            },
+            {
+              "title": "Minor 7 chords",
+              "start": 6444,
+              "end": 6659,
+              "then": "mt-x-sevenths"
+            },
+            {
+              "title": "Dominant 7 chords",
+              "start": 6866,
+              "end": 6969,
+              "then": "mt-q-dominant"
+            },
+            {
+              "title": "Sus2 and sus4 chords",
+              "start": 7254,
+              "end": 7677,
+              "then": "mt-q-sus"
+            }
+          ]
+        }
+      ],
+      "body": {
+        "file": "lessons/mt-chords/mt-seventh-chords.md"
+      },
+      "resources": [
+        {
+          "title": "musictheory.net lessons (seventh chords)",
+          "url": "https://www.musictheory.net/lessons"
+        },
+        {
+          "title": "Open Music Theory",
+          "url": "https://openmusictheory.github.io/"
+        }
+      ],
+      "practice": [
+        {
+          "id": "mt-q-major-seven",
+          "type": "quiz",
+          "question": "Which notes make Cmaj7?",
+          "options": [
+            "C E G Bb",
+            "C Eb G Bb",
+            "C E G B",
+            "C E G A"
+          ],
+          "answer": 2,
+          "explanation": "Major 7 is a major triad with a major 7th on top: gaps 4 3 4. C E G, then G up 4 is B. C E G Bb is C7 (dominant); C E G A is C6."
+        },
+        {
+          "id": "mt-x-sevenths",
+          "type": "code",
+          "title": "Build seventh and sus chords",
+          "prompt": {
+            "file": "practice/mt-x-sevenths/prompt.md"
+          },
+          "starter": {
+            "file": "practice/mt-x-sevenths/starter.py"
+          },
+          "tests": {
+            "file": "practice/mt-x-sevenths/tests.py"
+          },
+          "solution": {
+            "file": "practice/mt-x-sevenths/solution.py"
+          }
+        },
+        {
+          "id": "mt-q-dominant",
+          "type": "quiz",
+          "question": "A chart says A7. What do you play?",
+          "options": [
+            "A C# E G#",
+            "A C# E G",
+            "A C E G",
+            "A D E G"
+          ],
+          "answer": 1,
+          "explanation": "\"7\" on its own means dominant 7: a major triad plus a minor 7th, gaps 4 3 3. A up 4 is C#, up 3 is E, up 3 is G. A C# E G# is Amaj7; A C E G is Am7."
+        },
+        {
+          "id": "mt-q-sus",
+          "type": "quiz",
+          "question": "Which notes make Dsus4?",
+          "options": [
+            "D F# A",
+            "D E A",
+            "D G A",
+            "D F A"
+          ],
+          "answer": 2,
+          "explanation": "Sus4 replaces the third with the perfect 4th: root, 4th, 5th (gaps 5 2). D up 5 is G, G up 2 is A. D E A is Dsus2."
+        },
+        {
+          "id": "mt-q-minor-seven",
+          "type": "quiz",
+          "question": "In C major, the chord built on the 2nd degree with four notes is D F A C. What is it?",
+          "options": [
+            "Dmaj7",
+            "D7",
+            "Dm7",
+            "Dm7b5"
+          ],
+          "answer": 2,
+          "explanation": "Measure the gaps: D to F is 3, F to A is 4, A to C is 3. 3 4 3 is minor 7, so it's Dm7. This is the 2 in the 2-5-1 Dm7 G7 Cmaj7."
+        }
+      ]
+    },
+    {
+      "id": "mt-inversions",
+      "title": "Inversions",
+      "duration": "30 min",
+      "videos": [
+        {
+          "youtube": "rgaTLrZGlk0",
+          "title": "Learn music theory in half an hour (Andrew Huang)",
+          "clips": [
+            {
+              "title": "Inversions",
+              "start": 1229,
+              "end": 1439,
+              "then": "mt-q-inversion"
+            }
+          ]
+        },
+        {
+          "youtube": "Ud9CpGOG1GE",
+          "title": "Learn piano theory (Marks Piano)",
+          "clips": [
+            {
+              "title": "Chord inversions",
+              "start": 7964,
+              "end": 8191,
+              "then": "mt-x-inversions"
+            }
+          ]
+        }
+      ],
+      "body": {
+        "file": "lessons/mt-chords/mt-inversions.md"
+      },
+      "resources": [
+        {
+          "title": "musictheory.net lessons (inversions)",
+          "url": "https://www.musictheory.net/lessons"
+        },
+        {
+          "title": "Lightnote",
+          "url": "https://www.lightnote.co/"
+        }
+      ],
+      "practice": [
+        {
+          "id": "mt-q-inversion",
+          "type": "quiz",
+          "question": "You play E G C. What chord and position is it?",
+          "options": [
+            "E minor, root position",
+            "C major, first inversion",
+            "C major, second inversion",
+            "G major, second inversion"
+          ],
+          "answer": 1,
+          "explanation": "Rearrange into thirds: C E G, which is C major. The lowest note is E, the third, so it's first inversion."
+        },
+        {
+          "id": "mt-x-inversions",
+          "type": "code",
+          "title": "Write inversions",
+          "prompt": {
+            "file": "practice/mt-x-inversions/prompt.md"
+          },
+          "starter": {
+            "file": "practice/mt-x-inversions/starter.py"
+          },
+          "tests": {
+            "file": "practice/mt-x-inversions/tests.py"
+          },
+          "solution": {
+            "file": "practice/mt-x-inversions/solution.py"
+          }
+        },
+        {
+          "id": "mt-q-slash-chord",
+          "type": "quiz",
+          "question": "A worship chart says G/B. What does the bass play, and what is the right hand's chord?",
+          "options": [
+            "Bass G, chord B minor",
+            "Bass B, chord G major (first inversion)",
+            "Bass B, chord B major",
+            "Bass G, chord G major with an added B"
+          ],
+          "answer": 1,
+          "explanation": "The letter after the slash is the bass note. B is the third of G major (G B D), so G/B is G major in first inversion."
+        },
+        {
+          "id": "mt-q-voice-leading",
+          "type": "quiz",
+          "question": "You're playing C E G and the next chord is F major. Which F major voicing moves your right hand least?",
+          "options": [
+            "F A C",
+            "A C F",
+            "C F A",
+            "F C A"
+          ],
+          "answer": 2,
+          "explanation": "C F A (second inversion) keeps C where it is and moves E up a half step to F and G up a whole step to A. F A C jumps every finger."
+        }
+      ]
+    }
+  ],
+  "project": {
+    "id": "mt-chords-project",
+    "title": "A chord dictionary for one key",
+    "brief": {
+      "file": "projects/mt-chords.md"
+    },
+    "checklist": [
+      "All seven diatonic triads in C written out with their notes and quality",
+      "All seven diatonic seventh chords in C written out (Cmaj7 to Bm7b5)",
+      "A second key chosen, with its seven triads and seven seventh chords written out",
+      "Every triad in both keys played in root position, first and second inversion",
+      "Gap pattern checked for every chord (major 4 3, minor 3 4, diminished 3 3)",
+      "A recording of the C triads played up the keyboard in root position and both inversions",
+      "A recording of the second key's seventh chords in root position",
+      "A short loop (for example 2-5-1) played in both keys using inversions for smooth voice leading"
+    ],
+    "links": false
+  }
+}

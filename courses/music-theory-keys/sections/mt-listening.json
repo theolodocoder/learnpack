@@ -1,0 +1,194 @@
+{
+  "id": "mt-listening",
+  "title": "Listening and putting it together",
+  "summary": "Train your ear on what you have learned, then work out a real song: its key, its numbers and its groove. Project: learn a song by theory.",
+  "status": "ready",
+  "lessons": [
+    {
+      "id": "mt-ear-training",
+      "title": "Ear training you can do every day",
+      "duration": "30 min",
+      "videos": [
+        {
+          "youtube": "TmJ696fMiJo",
+          "title": "Major or minor chords? Ear training game (CSound)"
+        }
+      ],
+      "body": {
+        "file": "lessons/mt-listening/mt-ear-training.md"
+      },
+      "resources": [
+        {
+          "title": "ToneDear ear training",
+          "url": "https://tonedear.com/"
+        },
+        {
+          "title": "teoria.com ear training and theory",
+          "url": "https://www.teoria.com/"
+        }
+      ],
+      "practice": [
+        {
+          "id": "mt-q-ear-game",
+          "type": "quiz",
+          "question": "You're using the major-or-minor ear training video. What makes it actual practice rather than just watching?",
+          "options": [
+            "Letting the answers play and nodding along",
+            "Only watching the chords you got right last time",
+            "Watching it at double speed",
+            "Saying your answer out loud before each reveal and keeping your own score"
+          ],
+          "answer": 3,
+          "explanation": "The video can't hear you or keep score: it's guided listening, not an assessment. It only trains your ear if you commit to an answer first and track your own ticks and crosses."
+        },
+        {
+          "id": "mt-q-major-minor-difference",
+          "type": "quiz",
+          "question": "C major is C E G. Which note changes to make C minor?",
+          "options": [
+            "C becomes C#",
+            "E becomes Eb",
+            "G becomes Gb",
+            "G becomes G#"
+          ],
+          "answer": 1,
+          "explanation": "Only the middle note (the third) drops a half step: C Eb G. Major is 4 + 3 half steps; minor is 3 + 4."
+        },
+        {
+          "id": "mt-q-daily-routine",
+          "type": "quiz",
+          "question": "Which practice plan will train your ear fastest?",
+          "options": [
+            "Five to ten minutes every day, one skill at a time",
+            "One hour once a week",
+            "Only listening during service",
+            "Practising every skill at once until it feels easy"
+          ],
+          "answer": 0,
+          "explanation": "Short, frequent sessions work better than long, rare ones, and training one skill at a time keeps it manageable."
+        },
+        {
+          "id": "mt-q-hear-numbers",
+          "type": "quiz",
+          "question": "You play a C major chord, then a single G. What number is the G?",
+          "options": [
+            "1",
+            "4",
+            "5",
+            "6"
+          ],
+          "answer": 2,
+          "explanation": "Count up the C major scale: C (1), D (2), E (3), F (4), G (5). The 5 sounds stable but open."
+        }
+      ]
+    },
+    {
+      "id": "mt-learn-a-song",
+      "title": "Learn a song with theory",
+      "duration": "45 min",
+      "videos": [
+        {
+          "youtube": "QWnTVipZgT4",
+          "title": "Music theory for dum-dums, full beginner course (Piano With Corey)",
+          "clips": [
+            {
+              "title": "Putting it all together",
+              "start": 2087,
+              "end": 2313,
+              "then": "mt-x-song-map"
+            }
+          ]
+        }
+      ],
+      "body": {
+        "file": "lessons/mt-listening/mt-learn-a-song.md"
+      },
+      "resources": [
+        {
+          "title": "ToneDear ear training",
+          "url": "https://tonedear.com/"
+        },
+        {
+          "title": "Open Music Theory",
+          "url": "https://openmusictheory.github.io/"
+        }
+      ],
+      "practice": [
+        {
+          "id": "mt-x-song-map",
+          "type": "code",
+          "title": "Map a song in A",
+          "prompt": {
+            "file": "practice/mt-x-song-map/prompt.md"
+          },
+          "starter": {
+            "file": "practice/mt-x-song-map/starter.py"
+          },
+          "tests": {
+            "file": "practice/mt-x-song-map/tests.py"
+          },
+          "solution": {
+            "file": "practice/mt-x-song-map/solution.py"
+          }
+        },
+        {
+          "id": "mt-q-first-step",
+          "type": "quiz",
+          "question": "You get a voice note of a song you need for Sunday. What should you work out first?",
+          "options": [
+            "The exact voicing of every chord",
+            "The lyrics of the bridge",
+            "The key note: where the song rests",
+            "The drum pattern"
+          ],
+          "answer": 2,
+          "explanation": "Everything else depends on the key. Once you know the 1, you can turn every bass note into a number."
+        },
+        {
+          "id": "mt-q-bass-first",
+          "type": "quiz",
+          "question": "Why follow the bass line to find the chords?",
+          "options": [
+            "The bass usually plays each chord's root",
+            "The bass always plays the melody",
+            "The bass is always in the key of C",
+            "The bass never changes notes"
+          ],
+          "answer": 0,
+          "explanation": "The lowest note usually tells you the root of each chord. Turn those roots into numbers and you have the progression."
+        },
+        {
+          "id": "mt-q-song-numbers",
+          "type": "quiz",
+          "question": "The song is in E. The bass goes E, C#, A, B. What are the numbers?",
+          "options": [
+            "1-5-4-6",
+            "1-6-4-5",
+            "1-6-5-4",
+            "1-4-6-5"
+          ],
+          "answer": 1,
+          "explanation": "E major is E F# G# A B C# D#. E = 1, C# = 6, A = 4, B = 5: 1-6-4-5, likely E C#m A B."
+        }
+      ]
+    }
+  ],
+  "project": {
+    "id": "mt-listening-project",
+    "title": "Learn a song by theory",
+    "brief": {
+      "file": "projects/mt-listening.md"
+    },
+    "checklist": [
+      "Chose a song I have not played before",
+      "Found and wrote the key",
+      "Wrote the time signature and tempo",
+      "Wrote every section in numbers, with the section order",
+      "Wrote the chord names in the original key under the numbers",
+      "Noted any sevenths, borrowed chords or key changes",
+      "Played the chart along with the recording and fixed mistakes",
+      "Recorded myself playing the song from my chart alone"
+    ],
+    "links": false
+  }
+}

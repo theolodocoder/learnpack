@@ -1,0 +1,368 @@
+{
+  "id": "mt-progressions",
+  "title": "Numbers, progressions and transposing",
+  "summary": "Use the number system to play any progression in any key, transpose for a singer or choir, and learn the gospel moves built on 2-5-1. Project: one song in three keys.",
+  "status": "ready",
+  "lessons": [
+    {
+      "id": "mt-number-system",
+      "title": "The number system",
+      "duration": "40 min",
+      "videos": [
+        {
+          "youtube": "rgaTLrZGlk0",
+          "title": "Learn music theory in half an hour (Andrew Huang)",
+          "clips": [
+            {
+              "title": "The number system",
+              "start": 936,
+              "end": 1229,
+              "then": "mt-x-number-system"
+            }
+          ]
+        },
+        {
+          "youtube": "QWnTVipZgT4",
+          "title": "Music theory for dum-dums, full beginner course (Piano With Corey)",
+          "clips": [
+            {
+              "title": "The legendary chord progression",
+              "start": 1454,
+              "end": 1583,
+              "then": "mt-q-four-chords"
+            },
+            {
+              "title": "Primary chords",
+              "start": 1583,
+              "end": 1640,
+              "then": "mt-q-primary"
+            }
+          ]
+        }
+      ],
+      "body": {
+        "file": "lessons/mt-progressions/mt-number-system.md"
+      },
+      "resources": [
+        {
+          "title": "musictheory.net lessons",
+          "url": "https://www.musictheory.net/lessons"
+        },
+        {
+          "title": "Lightnote: interactive music theory",
+          "url": "https://www.lightnote.co/"
+        }
+      ],
+      "practice": [
+        {
+          "id": "mt-x-number-system",
+          "type": "code",
+          "title": "Numbers to chord names",
+          "prompt": {
+            "file": "practice/mt-x-number-system/prompt.md"
+          },
+          "starter": {
+            "file": "practice/mt-x-number-system/starter.py"
+          },
+          "tests": {
+            "file": "practice/mt-x-number-system/tests.py"
+          },
+          "solution": {
+            "file": "practice/mt-x-number-system/solution.py"
+          }
+        },
+        {
+          "id": "mt-q-four-chords",
+          "type": "quiz",
+          "question": "The worship leader says \"1-5-6-4 in G\". Which chords do you play?",
+          "options": [
+            "G D E C",
+            "G D Em C",
+            "G C Em D",
+            "G D Am C"
+          ],
+          "answer": 1,
+          "explanation": "G major is G A B C D E F#. 1 = G, 5 = D, 6 = E, 4 = C. The 6 chord is minor in a major key, so it is Em: G D Em C."
+        },
+        {
+          "id": "mt-q-primary",
+          "type": "quiz",
+          "question": "Why can so many hymns and simple songs be played with only the 1, 4 and 5 chords?",
+          "options": [
+            "They are the only major chords that sound good",
+            "The melody always uses only three notes",
+            "They are the only chords with no black keys",
+            "Together they contain every note of the major scale"
+          ],
+          "answer": 3,
+          "explanation": "In C: C E G + F A C + G B D = C D E F G A B, the whole scale. So one of the three fits under almost any melody note."
+        },
+        {
+          "id": "mt-q-minor-numbers",
+          "type": "quiz",
+          "question": "In any major key, which numbers give minor chords?",
+          "options": [
+            "1, 4 and 5",
+            "3, 6 and 7",
+            "2, 3 and 6",
+            "2, 5 and 6"
+          ],
+          "answer": 2,
+          "explanation": "The pattern is 1 major, 2 minor, 3 minor, 4 major, 5 major, 6 minor, 7 diminished. In C: Dm, Em and Am are the minor ones."
+        },
+        {
+          "id": "mt-q-roman",
+          "type": "quiz",
+          "question": "A YouTube teacher writes I-V-vi-IV. What is that in the number system?",
+          "options": [
+            "1-5-6-4",
+            "1-4-6-5",
+            "1-5-4-6",
+            "1-6-5-4"
+          ],
+          "answer": 0,
+          "explanation": "I = 1, V = 5, vi = 6, IV = 4. The small letters (vi) show the chord is minor; the numbers are the same idea."
+        }
+      ]
+    },
+    {
+      "id": "mt-transposing",
+      "title": "Transposing and finding the key",
+      "duration": "40 min",
+      "videos": [
+        {
+          "youtube": "QWnTVipZgT4",
+          "title": "Music theory for dum-dums, full beginner course (Piano With Corey)",
+          "clips": [
+            {
+              "title": "Transposing chords",
+              "start": 1640,
+              "end": 1720,
+              "then": "mt-x-transpose"
+            },
+            {
+              "title": "Finding your key",
+              "start": 1753,
+              "end": 2056,
+              "then": "mt-q-find-key"
+            }
+          ]
+        }
+      ],
+      "body": {
+        "file": "lessons/mt-progressions/mt-transposing.md"
+      },
+      "resources": [
+        {
+          "title": "musictheory.net lessons",
+          "url": "https://www.musictheory.net/lessons"
+        },
+        {
+          "title": "musictheory.net exercises",
+          "url": "https://www.musictheory.net/exercises"
+        }
+      ],
+      "practice": [
+        {
+          "id": "mt-x-transpose",
+          "type": "code",
+          "title": "Move a progression to a new key",
+          "prompt": {
+            "file": "practice/mt-x-transpose/prompt.md"
+          },
+          "starter": {
+            "file": "practice/mt-x-transpose/starter.py"
+          },
+          "tests": {
+            "file": "practice/mt-x-transpose/tests.py"
+          },
+          "solution": {
+            "file": "practice/mt-x-transpose/solution.py"
+          }
+        },
+        {
+          "id": "mt-q-find-key",
+          "type": "quiz",
+          "question": "You're working out a song. It keeps resting on a D chord, ends on D, and you also hear G, A and Em. What key is it most likely in?",
+          "options": [
+            "G major",
+            "A major",
+            "D major",
+            "E minor"
+          ],
+          "answer": 2,
+          "explanation": "Home is where the song rests and ends: D. D major has D, Em, F#m, G, A, Bm, so D (1), G (4), A (5) and Em (2) all fit."
+        },
+        {
+          "id": "mt-q-singer-lower",
+          "type": "quiz",
+          "question": "The song is in E (E B C#m A) and the soloist asks for it a whole step lower. What do you play?",
+          "options": [
+            "D A Bm G",
+            "Eb Bb Cm Ab",
+            "D A B G",
+            "C G Am F"
+          ],
+          "answer": 0,
+          "explanation": "Down a whole step is down 2 half steps: E->D, B->A, C#->B, A->G. The minor chord stays minor, so C#m becomes Bm: D A Bm G."
+        },
+        {
+          "id": "mt-q-last-chorus-lift",
+          "type": "quiz",
+          "question": "The choir sings in Ab and the director wants the last chorus up a half step. What is the new key, and what happens to the numbers?",
+          "options": [
+            "G, and the numbers change",
+            "A, and every minor chord becomes major",
+            "Bb, and the numbers stay the same",
+            "A, and the numbers stay the same"
+          ],
+          "answer": 3,
+          "explanation": "Ab up one half step is A. Transposing never changes the numbers or qualities, only the starting point."
+        }
+      ]
+    },
+    {
+      "id": "mt-gospel-moves",
+      "title": "Gospel moves: 2-5-1 and root movement",
+      "duration": "45 min",
+      "videos": [
+        {
+          "youtube": "inL0AceuCEo",
+          "title": "The gospel piano progression you need to know (Pianote)",
+          "clips": [
+            {
+              "title": "Root movement",
+              "start": 43,
+              "end": 161,
+              "then": "mt-q-root-movement"
+            },
+            {
+              "title": "Changing the chord qualities",
+              "start": 161,
+              "end": 338,
+              "then": "mt-x-gospel-qualities"
+            }
+          ]
+        },
+        {
+          "youtube": "gDfLITqISR8",
+          "title": "The most popular chord progression ever: 2-5-1 (YousicPlay)",
+          "clips": [
+            {
+              "title": "The basics of 2-5-1",
+              "start": 52,
+              "end": 151,
+              "then": "mt-x-two-five-one"
+            }
+          ]
+        }
+      ],
+      "body": {
+        "file": "lessons/mt-progressions/mt-gospel-moves.md"
+      },
+      "resources": [
+        {
+          "title": "musictheory.net lessons",
+          "url": "https://www.musictheory.net/lessons"
+        },
+        {
+          "title": "Open Music Theory",
+          "url": "https://openmusictheory.github.io/"
+        }
+      ],
+      "practice": [
+        {
+          "id": "mt-x-gospel-qualities",
+          "type": "code",
+          "title": "Add sevenths to 1-6-2-5",
+          "prompt": {
+            "file": "practice/mt-x-gospel-qualities/prompt.md"
+          },
+          "starter": {
+            "file": "practice/mt-x-gospel-qualities/starter.py"
+          },
+          "tests": {
+            "file": "practice/mt-x-gospel-qualities/tests.py"
+          },
+          "solution": {
+            "file": "practice/mt-x-gospel-qualities/solution.py"
+          }
+        },
+        {
+          "id": "mt-x-two-five-one",
+          "type": "code",
+          "title": "2-5-1 in F and Bb",
+          "prompt": {
+            "file": "practice/mt-x-two-five-one/prompt.md"
+          },
+          "starter": {
+            "file": "practice/mt-x-two-five-one/starter.py"
+          },
+          "tests": {
+            "file": "practice/mt-x-two-five-one/tests.py"
+          },
+          "solution": {
+            "file": "practice/mt-x-two-five-one/solution.py"
+          }
+        },
+        {
+          "id": "mt-q-root-movement",
+          "type": "quiz",
+          "question": "In C, the chain Em-Am-Dm-G-C sounds like it keeps pulling forward. Why?",
+          "options": [
+            "Every chord is minor",
+            "Each root moves up a half step",
+            "Each root falls a fifth (up a fourth) to the next",
+            "The chords are all in root position"
+          ],
+          "answer": 2,
+          "explanation": "E->A, A->D, D->G, G->C: each move is down a fifth, the strongest root movement. That is the 3-6-2-5-1 chain."
+        },
+        {
+          "id": "mt-q-dominant-seven",
+          "type": "quiz",
+          "question": "What is the difference between G7 and Gmaj7?",
+          "options": [
+            "G7 has F, Gmaj7 has F#",
+            "G7 is minor, Gmaj7 is major",
+            "G7 has four notes, Gmaj7 has three",
+            "There is no difference"
+          ],
+          "answer": 0,
+          "explanation": "Both are G B D plus a seventh. G7 adds F (10 half steps up), the dominant 7 used on the 5 chord. Gmaj7 adds F# (11 half steps up)."
+        },
+        {
+          "id": "mt-q-251-in-eb",
+          "type": "quiz",
+          "question": "The song is in Eb. Which is the 2-5-1 with sevenths?",
+          "options": [
+            "Fm7 Bb7 Ebmaj7",
+            "F7 Bbm7 Ebmaj7",
+            "Fm7 Bbmaj7 Eb7",
+            "Gm7 C7 Fmaj7"
+          ],
+          "answer": 0,
+          "explanation": "Eb major is Eb F G Ab Bb C D. 2 = F, 5 = Bb, 1 = Eb, with the pattern m7, 7, maj7: Fm7 Bb7 Ebmaj7."
+        }
+      ]
+    }
+  ],
+  "project": {
+    "id": "mt-progressions-project",
+    "title": "One song in three keys",
+    "brief": {
+      "file": "projects/mt-progressions.md"
+    },
+    "checklist": [
+      "Chose a song and found its key note by ear",
+      "Wrote every section of the song as numbers, with the section order",
+      "Wrote the chord names in the original key",
+      "Wrote the chord names in a higher key and a lower key",
+      "Played one section with sevenths (maj7, m7, 7)",
+      "Played a 2-5-1 leading into a section",
+      "Played the song at full tempo in all three keys",
+      "Recorded all three versions back to back"
+    ],
+    "links": false
+  }
+}

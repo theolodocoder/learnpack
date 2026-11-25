@@ -1,0 +1,226 @@
+{
+  "id": "mt-keyboard",
+  "title": "The keyboard and the notes",
+  "summary": "Find every note on the keyboard by name, and measure distance in half steps and whole steps. Project: a labelled keyboard map.",
+  "status": "ready",
+  "lessons": [
+    {
+      "id": "mt-note-names",
+      "title": "Note names, sharps and flats",
+      "duration": "35 min",
+      "videos": [
+        {
+          "youtube": "Ud9CpGOG1GE",
+          "title": "Learn piano theory (Marks Piano)",
+          "clips": [
+            {
+              "title": "White notes",
+              "start": 409,
+              "end": 796,
+              "then": "mt-q-white-notes"
+            },
+            {
+              "title": "Black notes",
+              "start": 796,
+              "end": 1369,
+              "then": "mt-x-name-the-keys"
+            }
+          ]
+        }
+      ],
+      "body": {
+        "file": "lessons/mt-keyboard/mt-note-names.md"
+      },
+      "resources": [
+        {
+          "title": "musictheory.net lessons",
+          "url": "https://www.musictheory.net/lessons"
+        },
+        {
+          "title": "musictheory.net exercises",
+          "url": "https://www.musictheory.net/exercises"
+        },
+        {
+          "title": "Lightnote: interactive music theory",
+          "url": "https://www.lightnote.co/"
+        }
+      ],
+      "practice": [
+        {
+          "id": "mt-q-white-notes",
+          "type": "quiz",
+          "question": "You want to find C quickly anywhere on the keyboard. Where is it?",
+          "options": [
+            "The white key just left of a group of three black keys",
+            "The white key just left of a group of two black keys",
+            "The white key just right of a group of two black keys",
+            "The first black key in any group"
+          ],
+          "answer": 1,
+          "explanation": "C sits just left of every group of two black keys. Around the two black keys you get C, D and E. The key just left of the three black keys is F."
+        },
+        {
+          "id": "mt-q-sharp-flat-same-key",
+          "type": "quiz",
+          "question": "The music director says \"start in Db\". Your chart says C#. What do you play?",
+          "options": [
+            "The same black key: C# and Db are two names for it",
+            "C# is one key higher than Db",
+            "Db is a white key",
+            "C# is one key lower than Db"
+          ],
+          "answer": 0,
+          "explanation": "C# is one key above C and Db is one key below D. That is the same black key. Two names for one key are called enharmonic spellings."
+        },
+        {
+          "id": "mt-q-e-sharp",
+          "type": "quiz",
+          "question": "A chart asks for E#. Which key do you press?",
+          "options": [
+            "The black key between E and F",
+            "E",
+            "F",
+            "F#"
+          ],
+          "answer": 2,
+          "explanation": "Sharp means one key higher. There is no black key between E and F, so one key above E is the white key F. E# and F sound the same."
+        },
+        {
+          "id": "mt-x-name-the-keys",
+          "type": "code",
+          "title": "Name the keys",
+          "prompt": {
+            "file": "practice/mt-x-name-the-keys/prompt.md"
+          },
+          "starter": {
+            "file": "practice/mt-x-name-the-keys/starter.py"
+          },
+          "tests": {
+            "file": "practice/mt-x-name-the-keys/tests.py"
+          },
+          "solution": {
+            "file": "practice/mt-x-name-the-keys/solution.py"
+          }
+        }
+      ]
+    },
+    {
+      "id": "mt-half-whole-steps",
+      "title": "Half steps and whole steps",
+      "duration": "30 min",
+      "videos": [
+        {
+          "youtube": "Ud9CpGOG1GE",
+          "title": "Learn piano theory (Marks Piano)",
+          "clips": [
+            {
+              "title": "Half tones",
+              "start": 1705,
+              "end": 1842,
+              "then": "mt-q-half-step"
+            },
+            {
+              "title": "Whole tones",
+              "start": 1842,
+              "end": 2071,
+              "then": "mt-x-steps"
+            }
+          ]
+        }
+      ],
+      "body": {
+        "file": "lessons/mt-keyboard/mt-half-whole-steps.md"
+      },
+      "resources": [
+        {
+          "title": "musictheory.net lessons",
+          "url": "https://www.musictheory.net/lessons"
+        },
+        {
+          "title": "musictheory.net exercises",
+          "url": "https://www.musictheory.net/exercises"
+        },
+        {
+          "title": "ToneDear ear training",
+          "url": "https://tonedear.com/"
+        }
+      ],
+      "practice": [
+        {
+          "id": "mt-q-half-step",
+          "type": "quiz",
+          "question": "Which pair of notes is a half step apart?",
+          "options": [
+            "C and D",
+            "E and F",
+            "F and G",
+            "A and B"
+          ],
+          "answer": 1,
+          "explanation": "A half step is the very next key. There is no black key between E and F, so they are a half step apart. C-D, F-G and A-B each skip a black key, so they are whole steps."
+        },
+        {
+          "id": "mt-q-up-a-whole-step",
+          "type": "quiz",
+          "question": "The choir is singing in G and the leader asks you to take the last chorus up a whole step. What is the new key?",
+          "options": [
+            "G#",
+            "A",
+            "Bb",
+            "F"
+          ],
+          "answer": 1,
+          "explanation": "A whole step is two half steps: G -> G# -> A. The new key is A, and every chord moves up two half steps as well."
+        },
+        {
+          "id": "mt-q-singer-down",
+          "type": "quiz",
+          "question": "A soloist says D is too high and asks for it a half step lower. Which key do you move to?",
+          "options": [
+            "C",
+            "Eb",
+            "Db (C#)",
+            "D#"
+          ],
+          "answer": 2,
+          "explanation": "A half step down is the very next key to the left. From D that is the black key Db, also called C#."
+        },
+        {
+          "id": "mt-x-steps",
+          "type": "code",
+          "title": "Half steps and whole steps",
+          "prompt": {
+            "file": "practice/mt-x-steps/prompt.md"
+          },
+          "starter": {
+            "file": "practice/mt-x-steps/starter.py"
+          },
+          "tests": {
+            "file": "practice/mt-x-steps/tests.py"
+          },
+          "solution": {
+            "file": "practice/mt-x-steps/solution.py"
+          }
+        }
+      ]
+    }
+  ],
+  "project": {
+    "id": "mt-keyboard-project",
+    "title": "A labelled keyboard map",
+    "brief": {
+      "file": "projects/mt-keyboard.md"
+    },
+    "checklist": [
+      "Two octaves of keyboard drawn, with every white and black key labelled",
+      "Black keys labelled with both sharp and flat names",
+      "Middle C (or the C nearest the centre) marked",
+      "Every C and every F on your keyboard played and called out, bottom to top",
+      "Ten random notes found in under two seconds each",
+      "Half steps played up from C to the next C, all twelve keys",
+      "Whole steps played from C (C D E F# G# A# C) and from Db (Db Eb F G A B Db)",
+      "A short recording or written log of the half and whole steps you played"
+    ],
+    "links": false
+  }
+}

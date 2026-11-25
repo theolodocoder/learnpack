@@ -1,0 +1,46 @@
+{
+  "format": 1,
+  "id": "music-theory-keys",
+  "title": "Music Theory for the Keys",
+  "description": "Notes, scales, chords, the number system and rhythm, taught from the keyboard with the progressions behind gospel and Afrobeats. Short video clips, then practice checked as you go.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Promise Okafor"
+  },
+  "license": "CC-BY-4.0",
+  "language": "python",
+  "requirements": {
+    "python": []
+  },
+  "support": "support",
+  "theme": { "cover": { "light": "cover-light.png", "dark": "cover-dark.png" },
+    "accent": "#7C3AED"
+  },
+  "features": {
+    "notes": true,
+    "timer": true,
+    "focusMode": true,
+    "studyStats": true,
+    "review": true
+  },
+  "sections": [
+    {
+      "include": "sections/mt-keyboard.json"
+    },
+    {
+      "include": "sections/mt-scales.json"
+    },
+    {
+      "include": "sections/mt-chords.json"
+    },
+    {
+      "include": "sections/mt-progressions.json"
+    },
+    {
+      "include": "sections/mt-rhythm.json"
+    },
+    {
+      "include": "sections/mt-listening.json"
+    }
+  ]
+}

@@ -1,0 +1,215 @@
+{
+  "id": "mt-rhythm",
+  "title": "Rhythm and groove",
+  "summary": "Read time signatures, count simple and compound time, and feel the 12/8 groove that sits under so much Afro and gospel music. Project: count and clap three songs.",
+  "status": "ready",
+  "lessons": [
+    {
+      "id": "mt-time-signatures",
+      "title": "Time signatures and counting",
+      "duration": "40 min",
+      "videos": [
+        {
+          "youtube": "gxynOZ_vt6U",
+          "title": "The difference between 3/4 and 6/8 time signatures (Music Matters)",
+          "clips": [
+            {
+              "title": "The theory behind time signatures",
+              "start": 35,
+              "end": 408,
+              "then": "mt-x-bar-maths"
+            },
+            {
+              "title": "How to tell them apart",
+              "start": 408,
+              "end": 689,
+              "then": "mt-q-compound"
+            }
+          ]
+        }
+      ],
+      "body": {
+        "file": "lessons/mt-rhythm/mt-time-signatures.md"
+      },
+      "resources": [
+        {
+          "title": "musictheory.net lessons",
+          "url": "https://www.musictheory.net/lessons"
+        },
+        {
+          "title": "musictheory.net exercises",
+          "url": "https://www.musictheory.net/exercises"
+        }
+      ],
+      "practice": [
+        {
+          "id": "mt-x-bar-maths",
+          "type": "code",
+          "title": "Bar maths",
+          "prompt": {
+            "file": "practice/mt-x-bar-maths/prompt.md"
+          },
+          "starter": {
+            "file": "practice/mt-x-bar-maths/starter.py"
+          },
+          "tests": {
+            "file": "practice/mt-x-bar-maths/tests.py"
+          },
+          "solution": {
+            "file": "practice/mt-x-bar-maths/solution.py"
+          }
+        },
+        {
+          "id": "mt-q-compound",
+          "type": "quiz",
+          "question": "You tap your foot twice per bar, and each tap splits into three even notes. Which time signature fits best?",
+          "options": [
+            "3/4",
+            "2/4",
+            "6/8",
+            "4/4"
+          ],
+          "answer": 2,
+          "explanation": "Two felt beats, each made of three eighths: 2 x 3 = 6 eighth notes, which is 6/8. 3/4 would give three taps, each split in two."
+        },
+        {
+          "id": "mt-q-top-number",
+          "type": "quiz",
+          "question": "What does the 3 in 3/4 tell you?",
+          "options": [
+            "There are three beats in each bar",
+            "Each beat is a third of a note",
+            "The song has three sections",
+            "Play three notes per beat"
+          ],
+          "answer": 0,
+          "explanation": "The top number counts the beats in a bar; the bottom number (4) says each beat is a quarter note."
+        },
+        {
+          "id": "mt-q-fill-the-bar",
+          "type": "quiz",
+          "question": "A bar of 4/4 already has a half note and a quarter note. What could fill the rest?",
+          "options": [
+            "One half note",
+            "Two eighth notes",
+            "Three eighth notes",
+            "One sixteenth note"
+          ],
+          "answer": 1,
+          "explanation": "2 + 1 = 3 beats used, so 1 beat is left. Two eighth notes are 0.5 + 0.5 = 1."
+        }
+      ]
+    },
+    {
+      "id": "mt-twelve-eight",
+      "title": "The 12/8 feel",
+      "duration": "35 min",
+      "videos": [
+        {
+          "youtube": "rgaTLrZGlk0",
+          "title": "Learn music theory in half an hour (Andrew Huang)",
+          "clips": [
+            {
+              "title": "Rhythm",
+              "start": 1646,
+              "end": 1896,
+              "then": "mt-q-twelve-eight"
+            }
+          ]
+        },
+        {
+          "youtube": "gH75tqjmHe4",
+          "title": "Basic 12/8 grooves (TroyGrechiN2Drums)"
+        }
+      ],
+      "body": {
+        "file": "lessons/mt-rhythm/mt-twelve-eight.md"
+      },
+      "resources": [
+        {
+          "title": "Ableton: Learning Music",
+          "url": "https://learningmusic.ableton.com/"
+        },
+        {
+          "title": "musictheory.net lessons",
+          "url": "https://www.musictheory.net/lessons"
+        }
+      ],
+      "practice": [
+        {
+          "id": "mt-x-twelve-eight",
+          "type": "code",
+          "title": "Map a bar of 12/8",
+          "prompt": {
+            "file": "practice/mt-x-twelve-eight/prompt.md"
+          },
+          "starter": {
+            "file": "practice/mt-x-twelve-eight/starter.py"
+          },
+          "tests": {
+            "file": "practice/mt-x-twelve-eight/tests.py"
+          },
+          "solution": {
+            "file": "practice/mt-x-twelve-eight/solution.py"
+          }
+        },
+        {
+          "id": "mt-q-twelve-eight",
+          "type": "quiz",
+          "question": "How is a bar of 12/8 usually felt?",
+          "options": [
+            "Twelve equal beats",
+            "Six beats, each split into two",
+            "Three beats, each split into four",
+            "Four beats, each split into three"
+          ],
+          "answer": 3,
+          "explanation": "12 eighth notes grouped in threes: 12 / 3 = 4 felt beats. Count \"1 la li, 2 la li, 3 la li, 4 la li\"."
+        },
+        {
+          "id": "mt-q-triplet-feel",
+          "type": "quiz",
+          "question": "A chart says 4/4, but every beat of the groove rolls in three even notes. How should you think about it?",
+          "options": [
+            "As straight eighth notes",
+            "As a triplet feel, like 12/8",
+            "As 3/4",
+            "As sixteenth notes"
+          ],
+          "answer": 1,
+          "explanation": "Three even notes per beat is a triplet. Four beats of triplets is the same feel as 12/8, so count it in threes."
+        },
+        {
+          "id": "mt-q-shuffle",
+          "type": "quiz",
+          "question": "In a 12/8 bar, you play only the first and third note of each group of three. What rhythm do you get?",
+          "options": [
+            "A shuffle: long, short",
+            "A straight eighth-note feel",
+            "A waltz",
+            "Sixteenth notes"
+          ],
+          "answer": 0,
+          "explanation": "Leaving out the middle triplet makes long-short pairs. That bouncy rhythm is the shuffle heard in blues and older R&B."
+        }
+      ]
+    }
+  ],
+  "project": {
+    "id": "mt-rhythm-project",
+    "title": "Count and clap three songs",
+    "brief": {
+      "file": "projects/mt-rhythm.md"
+    },
+    "checklist": [
+      "Chose a 4/4 song, a 3/4 or 6/8 song, and a 12/8 or triplet-feel song",
+      "Wrote the time signature of each song",
+      "Measured and wrote the tempo of each song in bpm",
+      "Wrote whether each beat divides into two or three",
+      "Recorded counting out loud and clapping eight bars of each song",
+      "Chose and practised a keyboard pattern that fits each groove",
+      "Recorded the keyboard pattern along with each song"
+    ],
+    "links": false
+  }
+}
