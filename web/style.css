@@ -492,6 +492,9 @@ button.side-section-head:hover { background: var(--sunken); }
 
 /* Course switcher */
 .brand-wrap { position: relative; min-width: 0; }
+.brand-mark { display: flex; flex: none; margin-right: -4px; }
+.brand-mark img { width: 26px; height: 27px; display: block; }
+@media (max-width: 560px) { .brand-mark img { width: 22px; height: 23px; } }
 .brand.switchable { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
 .brand.switchable::after { content: ""; width: 7px; height: 7px; margin-top: -4px; border: solid var(--muted); border-width: 0 2px 2px 0;
   transform: rotate(45deg); transition: transform .2s; flex-shrink: 0; }

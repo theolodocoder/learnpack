@@ -27,7 +27,7 @@ from engine.runner import check_code, run_code
 
 ROOT = Path(__file__).resolve().parent
 WEB = ROOT / "web"
-STATIC_TYPES = {".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml"}
+STATIC_TYPES = {".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png"}
 
 
 class App:

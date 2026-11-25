@@ -444,7 +444,7 @@ $("#sidebar").addEventListener("click", (e) => {
 function renderHome() {
   S.course = null; S.cid = null;
   applyLook();
-  $("#brand").textContent = "Learn"; $("#brand").href = "#/"; document.title = "Learn";
+  $("#brand").textContent = "LearnPack"; $("#brand").href = "#/"; document.title = "LearnPack";
   $("#brand").classList.remove("switchable");
   setChrome({ sidebar: false });
   $("#main").innerHTML = `<div class="page wide"><div class="hero"><h1 class="page-title">Your courses</h1>
@@ -891,7 +891,7 @@ const Timer = {
     document.querySelectorAll("[data-phase]").forEach((b) => b.classList.toggle("active", b.dataset.phase === s.phase));
     const today = S.cid ? S.state.pomodoros[Study.dayKey()] || 0 : 0;
     $("#timer-meta").textContent = `${today} focus session${today === 1 ? "" : "s"} today`;
-    const base = S.course ? S.course.title : "Learn";
+    const base = S.course ? S.course.title : "LearnPack";
     document.title = s.running ? `${t} ${this.phases[s.phase]} · ${base}` : base;
   },
 };

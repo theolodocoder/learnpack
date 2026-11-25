@@ -1,3 +1,5 @@
+<p><img src="docs/images/logo.svg" alt="" width="56"></p>
+
 # LearnPack
 
 **A local, Udacity-style learning platform that turns a folder of JSON and Markdown into a full course.**
