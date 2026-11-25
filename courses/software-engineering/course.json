@@ -10,7 +10,7 @@
       "httpx"
     ]
   },
-  "theme": { "cover": { "light": "cover-light.png", "dark": "cover-dark.png" },
+  "theme": { "cover": { "light": "cover-light.webp", "dark": "cover-dark.webp" },
     "accent": "#2563EB"
   },
   "version": "1.0.0",
