@@ -622,8 +622,8 @@ function renderLesson(id) {
     <div class="lesson-foot">
       <button class="btn ghost done-btn ${isDone(l.id) ? "is-done" : ""}" id="done-btn"></button>
       <div class="nav">
-        ${prev ? `<a class="btn ghost small" href="#/${S.cid}/l/${prev.id}">Previous</a>` : ""}
-        ${next ? `<a class="btn small" id="next-lesson" href="#/${S.cid}/l/${next.id}">Next: ${esc(next.title)}</a>` : ""}
+        ${prev ? `<a class="btn ghost small" id="prev-lesson" title="Previous lesson ([)" href="#/${S.cid}/l/${prev.id}">Previous</a>` : ""}
+        ${next ? `<a class="btn small" id="next-lesson" title="Next lesson (])" href="#/${S.cid}/l/${next.id}">Next: ${esc(next.title)}</a>` : ""}
         ${l.section.project ? `<a class="btn ghost small" href="#/${S.cid}/p/${l.section.id}">Section project</a>` : ""}
       </div>
     </div></article>`;
@@ -830,6 +830,12 @@ document.addEventListener("keydown", (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey || typing(e.target) || !feature("focusMode")) return;
   if (e.key === "f" || e.key === "F") { e.preventDefault(); Focus.set(!Focus.on); }
   if (e.key === "Escape" && Focus.on) Focus.set(false);
+});
+// Use the lesson links so Next also records completion, just like a click.
+document.addEventListener("keydown", (e) => {
+  if (e.defaultPrevented || e.isComposing || e.repeat || e.metaKey || e.ctrlKey || e.altKey || typing(e.target)) return;
+  const link = e.key === "[" ? $("#prev-lesson") : e.key === "]" ? $("#next-lesson") : null;
+  if (link) { e.preventDefault(); link.click(); }
 });
 
 // Focus timer (Pomodoro). Runs off a wall-clock end time, so it survives page changes and reloads.
