@@ -18,12 +18,19 @@ Python 3.10+ is required, plus Node 24+ for the JS/TS runner and its tests. Ther
 
 ## Tests
 
-Run all three before opening a pull request. CI runs them too.
+Run these before opening a pull request. CI runs the first three too.
 
 ```bash
-.venv/bin/python -m pytest -q              # server API, pack loader/validator, code runner (Python + JS/TS)
+.venv/bin/python -m pytest -q              # server API, pack loader/validator, code runner (Python + JS/TS), web build
 node --test tests/study.test.js            # streaks, review schedule, timer phases
 for p in courses/*/; do python3 server.py validate "$p" || exit 1; done   # every pack, every solution
+```
+
+For changes to navigation or lesson pages, also run the browser test. It drives the real app in Chromium and needs [`playwright-core`](https://www.npmjs.com/package/playwright-core) plus a Chrome or Chromium binary:
+
+```bash
+npm i --no-save playwright-core
+BROWSER_EXECUTABLE="/path/to/chrome" node --test tests/navigation.browser.test.cjs
 ```
 
 Add a test with every behaviour change:
@@ -35,14 +42,23 @@ Add a test with every behaviour change:
 ```
 web/                         browser app: plain HTML/CSS/JS, no framework, no build
 ├── index.html               shell; libraries from cdnjs (marked, DOMPurify, CodeMirror 5, highlight.js)
-├── app.js                   routing, rendering, notes, editor, timer, focus mode, review
+├── app.js                   routing, rendering, notes, editor, video player, timer, focus mode, review
 ├── study.js                 pure logic (dates, streaks, review schedule); also loaded by Node tests
-└── style.css                design tokens on :root (light/dark), then components
-server.py                    HTTP server + JSON API + CLI (serve / validate); standard library only
+├── style.css                design tokens on :root (light/dark), then components
+├── local.js                 web version only: answers the server's API from IndexedDB
+├── runner.js                web version only: runs exercises in Web Workers
+├── py-worker.js             Python exercises via Pyodide
+├── js-worker.js             JavaScript/TypeScript exercises via the TypeScript compiler
+├── sw.js                    service worker: offline cache for the web version
+└── logo.svg, favicon.svg    brand assets (sources in docs/brand/)
+server.py                    HTTP server + JSON API + CLI (serve / validate / build-web); standard library only
 engine/
 ├── pack.py                  load_pack (resolves {"file"} and {"include"}), validate_pack, public_course
-└── runner.py                run_code / check_code for python, javascript, typescript
-courses/<id>/                course packs (see docs/pack-format.md)
+├── runner.py                run_code / check_code for python, javascript, typescript
+├── browse.py                reading copies of pages that refuse to be framed (in-app browser)
+└── webbuild.py              builds the static web version (one JSON file per pack)
+courses/<id>/                course packs (see docs/pack-format.md); courses/_template/ is the smallest one
+tests/                       pytest suites, Node tests for study.js, and a browser navigation test
 learner-data/<id>/           per-learner data, git-ignored: state.json, notes/*.html, code/*
 ```
 

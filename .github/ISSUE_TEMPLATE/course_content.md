@@ -4,7 +4,7 @@ about: A wrong fact, broken link or video, or an exercise that's unfair or broke
 labels: content
 ---
 
-**Course and lesson:** (e.g. frontend-senior → event-loop-tasks-microtasks)
+**Course and lesson:** (e.g. ai-engineering → llm-streaming)
 
 **What's wrong**
 
