@@ -1,6 +1,7 @@
 // Runs Python exercises in the browser (web version), using Pyodide.
 // Mirrors engine/runner.py: learner code is solution.py, hidden tests are tests.py, and the
 // harness runs every test_* function in file order and prints one JSON line after a marker.
+// Started by web/runner.js, which documents the message protocol and enforces the time limit.
 importScripts("https://cdn.jsdelivr.net/pyodide/v0.28.3/full/pyodide.js");
 
 const MARKER = "__LEARN_RESULTS__";
@@ -96,6 +97,7 @@ const ALIASES = { "python-dotenv": "dotenv", "beautifulsoup4": "bs4", "pyyaml": 
 const importName = (req) => { const n = req.match(/^[A-Za-z0-9._-]+/)[0].toLowerCase(); return ALIASES[n] || n.replace(/-/g, "_"); };
 
 // Only install the requirements this exercise imports: a word-count exercise shouldn't wait for numpy and FastAPI.
+// Loads Pyodide on first use, then installs (via micropip) the requirements these sources import.
 async function ready(requirements, sources) {
   if (!pyodide) {
     status("Loading Python in your browser (first time only, about 10 MB)…");
@@ -103,15 +105,15 @@ async function ready(requirements, sources) {
     await pyodide.loadPackage(["micropip", "sqlite3"]);  // sqlite3 is a separate package in Pyodide
   }
   const imports = new Set();
-  const find = pyodide.pyimport("pyodide.code").find_imports;
-  for (const src of sources) { try { for (const m of find(src).toJs()) imports.add(m.toLowerCase()); } catch (e) { /* syntax error: the run reports it */ } }
+  const findImports = pyodide.pyimport("pyodide.code").find_imports;
+  for (const src of sources) { try { for (const m of findImports(src).toJs()) imports.add(m.toLowerCase()); } catch (e) { /* syntax error: the run reports it */ } }
   if (imports.has("fastapi") || imports.has("starlette")) imports.add("httpx");  // the test client runs on httpx
-  const need = [...requirements, ...(imports.has("httpx") && !requirements.some((r) => importName(r) === "httpx") ? ["httpx"] : [])]
+  const toInstall = [...requirements, ...(imports.has("httpx") && !requirements.some((r) => importName(r) === "httpx") ? ["httpx"] : [])]
     .filter((r) => !installed.has(r) && imports.has(importName(r).toLowerCase()));
-  if (need.length) {
-    status(`Installing ${need.join(", ")} (first time only)…`);
+  if (toInstall.length) {
+    status(`Installing ${toInstall.join(", ")} (first time only)…`);
     const micropip = pyodide.pyimport("micropip");
-    for (const r of need) {
+    for (const r of toInstall) {
       for (let attempt = 0; attempt < 4; attempt++) {
         try { await micropip.install(r); installed.set(r, true); break; }
         catch (e) {
@@ -130,7 +132,7 @@ async function ready(requirements, sources) {
   }
 }
 
-let runs = 0;
+let runs = 0;  // each run gets a fresh folder, so files a previous run wrote can't leak into this one
 self.onmessage = async ({ data }) => {
   const { mode, code, tests, support, requirements } = data;
   let stdout = "", stderr = "";
@@ -150,6 +152,7 @@ self.onmessage = async ({ data }) => {
     pyodide.globals.set("_HARNESS", HARNESS);
     pyodide.globals.set("_WEB_TESTCLIENT", WEB_TESTCLIENT);
     pyodide.globals.set("_MODULES", ["solution", "tests", ...Object.keys(support).filter((n) => n.endsWith(".py")).map((n) => n.slice(0, -3))]);
+    // Drop modules and run folders left from earlier runs (Pyodide keeps one interpreter), then run.
     const exitCode = await pyodide.runPythonAsync(`
 import os, sys, runpy, traceback
 os.chdir(_RUN_DIR)
@@ -171,6 +174,7 @@ except BaseException:
     _code = 1
 _code
 `);
+    // A missing module is usually a package that has no build for the browser: say so plainly.
     const missing = [...installed].filter(([, v]) => v !== true);
     if (missing.length && /ModuleNotFoundError/.test(stdout + stderr)) {
       stderr += `\nNote: the web version couldn't install ${missing.map(([k]) => k).join(", ")} (${missing.map(([, v]) => v).join("; ").slice(0, 300)}). This exercise needs the downloaded LearnPack to run.`;

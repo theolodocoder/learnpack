@@ -1,4 +1,5 @@
-// Run: node --test tests/
+// Unit tests for web/study.js: dates, streaks, the review schedule and timer phases.
+// Run: node --test tests/study.test.js
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const S = require("../web/study.js");

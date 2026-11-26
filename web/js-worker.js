@@ -2,6 +2,7 @@
 // Mirrors the Node harness in engine/runner.py: tests call a global test(name, fn) and import
 // "./solution.ts" / "./solution.js" and node:assert. TypeScript is transpiled with the TypeScript
 // compiler, then every module is loaded from a Blob URL with its imports rewritten.
+// Started by web/runner.js, which documents the message protocol and enforces the time limit.
 let tsc = null;  // the TypeScript compiler (its own global is named ts, so ours can't be)
 const status = (text) => postMessage({ type: "status", text });
 const blob = (src) => URL.createObjectURL(new Blob([src], { type: "text/javascript" }));
@@ -76,6 +77,8 @@ export const test = globalThis.test;
 export default { mock };
 `;
 
+// A module loaded from a Blob URL can't resolve "./x" or "node:assert", so point every import at the
+// Blob URL made for it. An import of "./x.js" also finds x.ts, as TypeScript code expects.
 function rewrite(js, urls) {
   const map = (spec) => urls[spec] || (spec.startsWith("./") && urls[spec.replace(/\.(ts|js|mjs)$/, ".ts")]) || urls[spec.replace(/\.(ts|mjs)$/, ".js")] || spec;
   return js
@@ -91,9 +94,9 @@ self.process ||= { env: {}, nextTick: (fn, ...a) => queueMicrotask(() => fn(...a
 self.onmessage = async ({ data }) => {
   const { lang, mode, code, tests, support } = data;
   let stdout = "", stderr = "";
-  const fmt = (args) => args.map((a) => (typeof a === "string" ? a : (() => { try { return JSON.stringify(a); } catch { return String(a); } })())).join(" ") + "\n";
-  console.log = console.info = console.debug = (...a) => { stdout += fmt(a); };
-  console.error = console.warn = (...a) => { stderr += fmt(a); };
+  const formatArgs = (args) => args.map((a) => (typeof a === "string" ? a : (() => { try { return JSON.stringify(a); } catch { return String(a); } })())).join(" ") + "\n";
+  console.log = console.info = console.debug = (...a) => { stdout += formatArgs(a); };
+  console.error = console.warn = (...a) => { stderr += formatArgs(a); };
   try {
     if (lang === "typescript" && !tsc) {
       status("Loading the TypeScript compiler (first time only)…");
@@ -111,19 +114,20 @@ self.onmessage = async ({ data }) => {
       else if (name.endsWith(".json")) urls["./" + name] = blob("export default " + src);
     }
     const ext = lang === "typescript" ? "ts" : "js";
-    const sol = blob(rewrite(compile(code, "solution." + ext), urls));
-    urls["./solution.ts"] = urls["./solution.js"] = urls["./solution.mjs"] = sol;
+    const solutionUrl = blob(rewrite(compile(code, "solution." + ext), urls));
+    urls["./solution.ts"] = urls["./solution.js"] = urls["./solution.mjs"] = solutionUrl;
     if (mode === "run") {
-      await import(sol);
+      await import(solutionUrl);
       postMessage({ type: "done", stdout, stderr, exit_code: 0, timed_out: false });
       return;
     }
-    const list = [];
-    self.test = globalThis.test = (name, fn) => list.push({ name, fn });
+    // Importing the tests module registers each test(name, fn); they run afterwards, one at a time, in order.
+    const registered = [];
+    self.test = globalThis.test = (name, fn) => registered.push({ name, fn });
     const results = [];
     try {
       await import(blob(rewrite(compile(tests, "tests." + ext), urls)));
-      for (const t of list) {
+      for (const t of registered) {
         try { await t.fn(); results.push({ name: t.name, passed: true, error: "" }); }
         catch (e) { results.push({ name: t.name, passed: false, error: (e?.name === "AssertionError" ? "" : (e?.name || "Error") + ": ") + (e?.message ?? String(e)) }); }
       }

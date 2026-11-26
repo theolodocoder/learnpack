@@ -2,6 +2,8 @@
 
 # LearnPack
 
+[![CI](https://github.com/theolodocoder/learnpack/actions/workflows/ci.yml/badge.svg)](https://github.com/theolodocoder/learnpack/actions/workflows/ci.yml) [![Web version](https://github.com/theolodocoder/learnpack/actions/workflows/pages.yml/badge.svg)](https://theolodocoder.github.io/learnpack/) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 **A local, Udacity-style learning platform that turns a folder of JSON and Markdown into a full course.**
 
 Written lessons with embedded videos, practice exercises you write and run with real Python or TypeScript and check against hidden tests, quizzes, Apple Notes-style notes, section projects, a focus timer, study streaks and spaced review. All of it runs on your own computer, with your progress saved as plain files.
@@ -205,12 +207,13 @@ More detail is in [CONTRIBUTING.md](CONTRIBUTING.md#architecture).
 | [Pack format reference](docs/pack-format.md) | Every field of `course.json` |
 | [Contributing](CONTRIBUTING.md) | Developing the platform: setup, architecture, tests |
 | [Security](SECURITY.md) | What the app protects against, and what it doesn't |
+| [Code of conduct](CODE_OF_CONDUCT.md) | How we work together |
 
 ---
 
 ## Contributing
 
-Bug reports, fixes, features and new course packs are all welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
+Bug reports, fixes, features and new course packs are all welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) and the [code of conduct](CODE_OF_CONDUCT.md). New here? Look for issues labelled [good first issue](https://github.com/theolodocoder/learnpack/contribute).
 
 ```bash
 pip install pytest && python -m pytest -q   # platform tests

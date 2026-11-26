@@ -1,6 +1,22 @@
 "use strict";
-// Learning platform front end. Renders any course pack served by server.py.
+// LearnPack front end: the whole single-page app (no build step, loaded by web/index.html).
+// It renders any course pack and works in two modes:
+//   - Local: served by server.py, which injects LEARN_TOKEN and answers /api/* requests.
+//   - Web version (STATIC): plain files on GitHub Pages; web/local.js (LocalBackend) and the
+//     runner workers answer the same API inside the browser, and progress lives in this browser.
+//
+// Globals used throughout:
+//   S  app state (course list, open course, its id, the learner's saved state)
+//   $  querySelector shorthand: $(selector, root = document)
+//
+// Sections, in order:
+//   helpers, state, theme, notes drawer, outline menu button, routing, web version offline cache,
+//   router and course loading, page chrome (top bar and sidebar), views: home and dashboard,
+//   views: lesson, views: practice, views: project, focus mode and shortcuts, Pomodoro timer,
+//   study time and Today panel, views: review, pack features and look, course switcher,
+//   in-app browser, web version only (add a course, back up and restore).
 
+// ---------- helpers ----------
 const $ = (sel, root = document) => root.querySelector(sel);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const store = {
@@ -11,6 +27,7 @@ const store = {
 // Web version: no local server (the page wasn't served by server.py), so the browser does its job.
 const STATIC = window.LEARN_TOKEN === "__" + "TOKEN__";
 
+// Calls the course API: the local server over fetch, or LocalBackend in the web version.
 async function api(path, { method = "GET", body, text = false } = {}) {
   if (STATIC) return window.LocalBackend.api(path, { method, body });
   const res = await fetch("api" + path, {
@@ -22,6 +39,7 @@ async function api(path, { method = "GET", body, text = false } = {}) {
   return (res.headers.get("Content-Type") || "").includes("json") ? res.json() : res.text();
 }
 
+// Markdown to safe HTML, with code highlighting and external links opening in a new tab.
 function md(text) {
   const html = DOMPurify.sanitize(marked.parse(text || ""), { ADD_ATTR: ["target"] });
   const div = document.createElement("div");
@@ -31,16 +49,18 @@ function md(text) {
   return div.innerHTML;
 }
 
+// Delays fn until ms have passed without a new call; .flush() runs it right away.
 function debounce(fn, ms) {
-  let t;
-  const d = (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
-  d.flush = (...a) => { clearTimeout(t); return fn(...a); };
-  return d;
+  let timer;
+  const debounced = (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), ms); };
+  debounced.flush = (...args) => { clearTimeout(timer); return fn(...args); };
+  return debounced;
 }
 
 // ---------- state ----------
-const S = { courses: null, course: null, cid: null, state: null, editors: [] };
-const allLessons = () => S.course.sections.flatMap((s) => s.lessons.map((l) => ({ ...l, section: s })));
+const S = { courses: null, course: null, cid: null, state: null };
+// Every lesson of the open course in order, each with a link back to its section.
+const allLessons = () => S.course.sections.flatMap((section) => section.lessons.map((lesson) => ({ ...lesson, section })));
 const isDone = (id) => S.state.done.includes(id);
 
 const saveState = debounce(async () => {
@@ -49,27 +69,28 @@ const saveState = debounce(async () => {
 }, 300);
 
 function toastError(msg) {
-  let t = $("#toast");
-  if (!t) { t = document.createElement("div"); t.id = "toast"; t.className = "error-box"; t.setAttribute("role", "alert");
-    Object.assign(t.style, { position: "fixed", bottom: "16px", left: "50%", transform: "translateX(-50%)", background: "var(--surface)", zIndex: 50 });
-    document.body.append(t); }
-  t.textContent = msg; t.hidden = false;
-  clearTimeout(t._h); t._h = setTimeout(() => (t.hidden = true), 5000);
+  let box = $("#toast");
+  if (!box) { box = document.createElement("div"); box.id = "toast"; box.className = "error-box"; box.setAttribute("role", "alert");
+    Object.assign(box.style, { position: "fixed", bottom: "16px", left: "50%", transform: "translateX(-50%)", background: "var(--surface)", zIndex: 50 });
+    document.body.append(box); }
+  box.textContent = msg; box.hidden = false;
+  clearTimeout(box._h); box._h = setTimeout(() => (box.hidden = true), 5000);
 }
 
 // ---------- theme ----------
 const THEMES = ["system", "light", "dark"];
-function applyTheme(t) {
-  if (t === "system") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t;
-  const dark = t === "dark" || (t === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+// Sets the page theme ("system", "light" or "dark") and the matching code-highlighting stylesheet.
+function applyTheme(theme) {
+  if (theme === "system") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = theme;
+  const dark = theme === "dark" || (theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
   $("#hl-light").disabled = dark; $("#hl-dark").disabled = !dark;
-  $("#theme-btn").textContent = { system: "◐", light: "☀", dark: "☾" }[t];
-  $("#theme-btn").title = `Theme: ${t} (click to change)`;
-  document.querySelectorAll("[data-theme-set]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.themeSet === t)));
+  $("#theme-btn").textContent = { system: "◐", light: "☀", dark: "☾" }[theme];
+  $("#theme-btn").title = `Theme: ${theme} (click to change)`;
+  document.querySelectorAll("[data-theme-set]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.themeSet === theme)));
 }
 // Phones hide the top bar's theme button; the same choice lives at the bottom of the ☰ menu.
-const themeChooser = () => `<div class="side-theme" role="group" aria-label="Theme"><span>Theme</span>${THEMES.map((t) =>
-  `<button data-theme-set="${t}" aria-pressed="${(store.get("theme") || "system") === t}">${t[0].toUpperCase() + t.slice(1)}</button>`).join("")}</div>`;
+const themeChooser = () => `<div class="side-theme" role="group" aria-label="Theme"><span>Theme</span>${THEMES.map((theme) =>
+  `<button data-theme-set="${theme}" aria-pressed="${(store.get("theme") || "system") === theme}">${theme[0].toUpperCase() + theme.slice(1)}</button>`).join("")}</div>`;
 document.addEventListener("click", (e) => {
   const b = e.target.closest("[data-theme-set]");
   if (b) { store.set("theme", b.dataset.themeSet); applyTheme(b.dataset.themeSet); }
@@ -82,12 +103,13 @@ matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => appl
 applyTheme(store.get("theme") || "system");
 
 // ---------- notes drawer (works like Apple Notes) ----------
-const ed = $("#nv-editor");
+const ed = $("#nv-editor");  // the note editor (contenteditable)
 document.execCommand("defaultParagraphSeparator", false, "div");
 
 const DAY = 864e5;
 const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 const fmtLong = (ms) => new Date(ms).toLocaleString(undefined, { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
+// Note list timestamp: time today, "Yesterday", a weekday this week, else the date.
 function fmtShort(ms) {
   const d = new Date(ms), age = startOfDay(new Date()) - startOfDay(d);
   if (age <= 0) return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
@@ -95,6 +117,7 @@ function fmtShort(ms) {
   if (age < 7 * DAY) return d.toLocaleDateString(undefined, { weekday: "long" });
   return d.toLocaleDateString();
 }
+// The heading a note is listed under, by how recently it changed.
 function groupOf(ms) {
   const d = new Date(ms), age = startOfDay(new Date()) - startOfDay(d);
   if (age <= 0) return "Today";
@@ -194,15 +217,17 @@ const Notes = {
 };
 
 function placeCaretAtEnd() {
-  const r = document.createRange(); r.selectNodeContents(ed); r.collapse(false);
-  const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+  const range = document.createRange(); range.selectNodeContents(ed); range.collapse(false);
+  const sel = getSelection(); sel.removeAllRanges(); sel.addRange(range);
 }
+// The nearest element matching selector around the caret, if it's inside the editor.
 function caretClosest(selector) {
-  const n = getSelection().anchorNode;
-  const el = n && (n.nodeType === 1 ? n : n.parentElement);
+  const node = getSelection().anchorNode;
+  const el = node && (node.nodeType === 1 ? node : node.parentElement);
   const hit = el?.closest(selector);
   return hit && ed.contains(hit) ? hit : null;
 }
+// Runs an editing command on the note, then saves and refreshes the format toolbar.
 function exec(cmd, value) { ed.focus(); document.execCommand(cmd, false, value); Notes.edited(); syncFormat(); }
 function setBlock(tag) { exec("formatBlock", tag); }
 function toggleChecklist() {
@@ -213,6 +238,7 @@ function toggleChecklist() {
   caretClosest("ul")?.classList.add("checklist");
   Notes.edited();
 }
+// Highlights the format toolbar buttons that match the text at the caret.
 function syncFormat() {
   if ($("#nv-format").hidden) return;
   const block = caretClosest("h1, h2, h3, pre")?.tagName.toLowerCase() || "div";
@@ -224,9 +250,9 @@ function syncFormat() {
 ed.addEventListener("input", () => {
   for (const node of [...ed.childNodes]) {
     if (node.nodeType === 3 && node.textContent.trim()) {
-      const s = getSelection(), inNode = s.anchorNode === node, off = s.anchorOffset;
+      const sel = getSelection(), inNode = sel.anchorNode === node, offset = sel.anchorOffset;
       const div = document.createElement("div"); node.replaceWith(div); div.append(node);
-      if (inNode) s.collapse(node, off);
+      if (inNode) sel.collapse(node, offset);
     }
   }
   Notes.edited();
@@ -268,6 +294,7 @@ $("#nv-items").addEventListener("click", (e) => { const b = e.target.closest("[d
 $("#notes-btn").onclick = () => (Notes.open ? Notes.hide() : Notes.show());
 window.addEventListener("beforeunload", (e) => { if (Notes.dirty) { Notes.save.flush(); e.preventDefault(); } });
 
+// ---------- outline menu button ----------
 // ☰ folds the whole outline away on wide screens (remembered), and slides it over the page on phones.
 const narrow = () => matchMedia("(max-width: 860px)").matches;
 function paintMenuBtn() {
@@ -294,6 +321,7 @@ window.addEventListener("hashchange", route);
 route();
 
 // ---------- web version: offline cache and preloading ----------
+// Runs fn when the browser is idle (or after 200 ms where requestIdleCallback is missing).
 function idle(fn) { (window.requestIdleCallback || ((f) => setTimeout(f, 200)))(fn, { timeout: 2000 }); }
 if (STATIC) {
   if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
@@ -307,12 +335,13 @@ if (STATIC) {
   document.addEventListener("focusin", lessonFromLink);
 }
 
+// ---------- router and course loading ----------
+// Renders the page for the current hash: #/ (home), #/course, #/course/l/lesson, #/course/p/section, #/course/review.
 async function route() {
   const parts = location.hash.replace(/^#\/?/, "").split("/").filter(Boolean).map(decodeURIComponent);
   const seq = ++routeSeq, stale = () => seq !== routeSeq;  // a newer click wins; older loads don't render
   $("#sidebar").classList.remove("open");
   Notes.save.flush();
-  S.editors = [];
   try {
     if (!S.courses) S.courses = await api("/courses");
     if (stale()) return;
@@ -338,7 +367,7 @@ async function route() {
 // Opening a course can mean downloading it first, so show that straight away: on the card that was
 // clicked, or as a loading page when the link was opened directly.
 function showOpening(cid) {
-  const title = S.courses?.find((c) => c.id === cid)?.title || "the course";
+  const title = S.courses?.find((course) => course.id === cid)?.title || "the course";
   const card = document.querySelector(`a.course-card[href="#/${CSS.escape(cid)}"]`);
   if (card) {
     document.querySelectorAll(".course-card.is-loading").forEach((c) => c.classList.remove("is-loading"));
@@ -350,6 +379,7 @@ function showOpening(cid) {
   }
 }
 
+// Loads a course and the learner's state for it (once), filling in defaults for older saved state.
 async function loadCourse(cid) {
   if (S.cid === cid) return;
   [S.course, S.state] = await Promise.all([api(`/courses/${cid}`), api(`/courses/${cid}/state`)]);
@@ -361,7 +391,7 @@ async function loadCourse(cid) {
   S.state.review ||= {};     // quiz id -> {box, due}
   S.state.goal ||= 60;       // daily goal, minutes
   S.quizIndex = {};
-  for (const l of allLessons()) for (const p of l.practice || []) if (p.type === "quiz") S.quizIndex[p.id] = { item: p, lesson: l };
+  for (const lesson of allLessons()) for (const practice of lesson.practice || []) if (practice.type === "quiz") S.quizIndex[practice.id] = { item: practice, lesson };
   applyLook();
   $("#brand").textContent = S.course.title;
   $("#brand").href = `#/${cid}`;
@@ -372,6 +402,8 @@ async function loadCourse(cid) {
   if (STATIC) idle(() => window.LocalBackend.warmCourse(cid));
 }
 
+// ---------- page chrome: top bar, progress and sidebar outline ----------
+// Shows or hides the parts around the page (sidebar, notes, timer, focus) for the view being rendered.
 function setChrome({ sidebar = true, notesKey = null } = {}) {
   $("#sidebar").hidden = !sidebar;
   $("#menu-btn").hidden = !sidebar;
@@ -388,14 +420,14 @@ function setChrome({ sidebar = true, notesKey = null } = {}) {
 }
 
 function progress(lessons) {
-  const total = lessons.length, done = lessons.filter((l) => isDone(l.id)).length;
+  const total = lessons.length, done = lessons.filter((lesson) => isDone(lesson.id)).length;
   return { total, done, pct: total ? Math.round((done / total) * 100) : 0 };
 }
 
 function renderProgress() {
-  const p = progress(allLessons());
-  $("#topbar-fill").style.width = p.pct + "%";
-  $("#topbar-pct").textContent = `${p.pct}% done`;
+  const { pct } = progress(allLessons());
+  $("#topbar-fill").style.width = pct + "%";
+  $("#topbar-pct").textContent = `${pct}% done`;
 }
 
 function renderSidebar() {
@@ -404,27 +436,28 @@ function renderSidebar() {
   const reviewHref = `#/${S.cid}/review`;
   $("#sidebar").innerHTML = (feature("review") ? `<a class="side-link review-link ${cur === reviewHref ? "active" : ""}" href="${reviewHref}">
       <span class="review-icon" aria-hidden="true">↻</span>Review${dueCount ? `<span class="due-badge">${dueCount}</span>` : ""}</a>` : "") +
-    S.course.sections.map((s) => {
-    const p = progress(s.lessons), soon = s.status === "coming-soon";
-    const links = s.lessons.map((l) => {
-      const href = `#/${S.cid}/l/${l.id}`;
-      return `<a class="side-link ${cur === href ? "active" : ""}" href="${href}"><span class="tick ${isDone(l.id) ? "on" : ""}">✓</span>${esc(l.title)}</a>`;
+    S.course.sections.map((section) => {
+    const counts = progress(section.lessons), soon = section.status === "coming-soon";
+    const links = section.lessons.map((lesson) => {
+      const href = `#/${S.cid}/l/${lesson.id}`;
+      return `<a class="side-link ${cur === href ? "active" : ""}" href="${href}"><span class="tick ${isDone(lesson.id) ? "on" : ""}">✓</span>${esc(lesson.title)}</a>`;
     }).join("");
-    const proj = s.project ? (() => {
-      const href = `#/${S.cid}/p/${s.id}`, items = s.project.checklist || [];
-      const ticked = items.length && items.every((_, i) => S.state.checklist[`${s.project.id}:${i}`]);
-      return `<a class="side-link project ${cur === href ? "active" : ""}" href="${href}"><span class="tick ${ticked ? "on" : ""}">✓</span>Project: ${esc(s.project.title)}</a>`;
+    const proj = section.project ? (() => {
+      const href = `#/${S.cid}/p/${section.id}`, items = section.project.checklist || [];
+      const ticked = items.length && items.every((_, i) => S.state.checklist[`${section.project.id}:${i}`]);
+      return `<a class="side-link project ${cur === href ? "active" : ""}" href="${href}"><span class="tick ${ticked ? "on" : ""}">✓</span>Project: ${esc(section.project.title)}</a>`;
     })() : "";
-    const count = `<span class="count">${soon ? "Coming soon" : `${p.done}/${p.total}`}</span>`;
-    if (soon) return `<div class="side-section soon"><div class="side-section-head"><span class="chev-space"></span><span class="side-title">${esc(s.title)}</span>${count}</div></div>`;
+    const count = `<span class="count">${soon ? "Coming soon" : `${counts.done}/${counts.total}`}</span>`;
+    if (soon) return `<div class="side-section soon"><div class="side-section-head"><span class="chev-space"></span><span class="side-title">${esc(section.title)}</span>${count}</div></div>`;
     // The section you're in always shows, even if you folded it earlier.
-    const open = !collapsedSections().has(s.id) || (links + proj).includes('side-link active') || (links + proj).includes('side-link project active');
+    const open = !collapsedSections().has(section.id) || (links + proj).includes('side-link active') || (links + proj).includes('side-link project active');
     return `<div class="side-section ${open ? "" : "folded"}">
-      <button class="side-section-head" data-sec="${esc(s.id)}" aria-expanded="${open}"><span class="chev" aria-hidden="true"></span><span class="side-title">${esc(s.title)}</span>${count}</button>
+      <button class="side-section-head" data-sec="${esc(section.id)}" aria-expanded="${open}"><span class="chev" aria-hidden="true"></span><span class="side-title">${esc(section.title)}</span>${count}</button>
       <div class="side-links"><div>${links}${proj}</div></div></div>`;
   }).join("") + themeChooser();
 }
 
+// Sections the learner folded in the outline, remembered per course.
 const collapsedKey = () => `collapsed:${S.cid}`;
 function collapsedSections() {
   try { return new Set(JSON.parse(store.get(collapsedKey()) || "[]")); } catch (e) { return new Set(); }
@@ -440,7 +473,7 @@ $("#sidebar").addEventListener("click", (e) => {
   store.set(collapsedKey(), JSON.stringify([...set]));
 });
 
-// ---------- views ----------
+// ---------- views: home and dashboard ----------
 function renderHome() {
   S.course = null; S.cid = null;
   applyLook();
@@ -450,11 +483,11 @@ function renderHome() {
   $("#main").innerHTML = `<div class="page wide"><div class="hero"><h1 class="page-title">Your courses</h1>
     ${STATIC ? `<p>Pick a course to start. Your progress and notes are saved in this browser, on this device. Use <strong>Back up</strong> on a course page to keep a copy.</p>`
              : `<p>Each course is a folder in <code>courses/</code>. Copy <code>courses/_template</code> to make a new one.</p>`}</div>
-    ${S.courses.length ? `<div class="course-grid">${S.courses.map((c) => {
-      const pct = c.total ? Math.round((c.done / c.total) * 100) : 0;
-      return `<a class="card course-card" href="#/${esc(c.id)}">${courseCover(c.cover)}<h2>${esc(c.title)}</h2><p>${esc(c.description)}</p>
+    ${S.courses.length ? `<div class="course-grid">${S.courses.map((course) => {
+      const pct = course.total ? Math.round((course.done / course.total) * 100) : 0;
+      return `<a class="card course-card" href="#/${esc(course.id)}">${courseCover(course.cover)}<h2>${esc(course.title)}</h2><p>${esc(course.description)}</p>
         <div class="lava-track"><div class="lava-fill" style="width:${pct}%"></div></div>
-        <p style="margin:8px 0 0">${c.done} of ${c.total} lessons done</p></a>`;
+        <p style="margin:8px 0 0">${course.done} of ${course.total} lessons done</p></a>`;
     }).join("")}${STATIC ? addCourseCard() : ""}</div>` : (STATIC ? `<div class="course-grid">${addCourseCard()}</div>` : `<p class="empty">No courses yet. Add a folder with a <code>course.json</code> to <code>courses/</code>.</p>`)}</div>`;
   if (STATIC) wireAddCourse();
 }
@@ -467,58 +500,61 @@ function courseCover(cover) {
   return `<span class="course-cover">${light === dark ? img(light, "") : img(light, "cover-light") + img(dark, "cover-dark")}</span>`;
 }
 
+// The first unfinished lesson in a section that's out already.
 function nextLesson() {
-  return allLessons().find((l) => l.section.status !== "coming-soon" && !isDone(l.id));
+  return allLessons().find((lesson) => lesson.section.status !== "coming-soon" && !isDone(lesson.id));
 }
 
 function renderDashboard() {
   setChrome();
-  const p = progress(allLessons()), next = nextLesson();
-  const last = S.state.last && allLessons().find((l) => l.id === S.state.last);
+  const overall = progress(allLessons()), next = nextLesson();
+  const last = S.state.last && allLessons().find((lesson) => lesson.id === S.state.last);
   const target = (last && !isDone(last.id)) ? last : next;
   $("#main").innerHTML = `<div class="page wide">
     <div class="hero"><h1 class="page-title">${esc(S.course.title)}</h1><p>${esc(S.course.description)}</p>
-      <div class="big-progress"><strong>${p.pct}%</strong><div class="lava-track"><div class="lava-fill" style="width:0"></div></div></div>
+      <div class="big-progress"><strong>${overall.pct}%</strong><div class="lava-track"><div class="lava-fill" style="width:0"></div></div></div>
       ${target ? `<a class="btn" href="#/${S.cid}/l/${target.id}">${S.state.done.length || target === last ? "Continue" : "Start"}: ${esc(target.title)}</a>`
                : `<p><strong>You've finished every lesson available so far.</strong></p>`}
     </div>
     ${feature("studyStats") ? todayPanel() : ""}
-    <div class="section-list">${S.course.sections.map((s) => {
-      const sp = progress(s.lessons), soon = s.status === "coming-soon";
-      const first = s.lessons[0];
+    <div class="section-list">${S.course.sections.map((section) => {
+      const counts = progress(section.lessons), soon = section.status === "coming-soon";
+      const first = section.lessons[0];
       return `<div class="card section-row ${soon ? "soon" : ""}">
-        <div><h3>${first ? `<a href="#/${S.cid}/l/${first.id}">${esc(s.title)}</a>` : esc(s.title)}</h3><p>${esc(s.summary || "")}</p></div>
-        <div><div class="stat">${soon ? "Coming soon" : `${sp.done} of ${sp.total} lessons`}</div>
-          <div class="lava-track"><div class="lava-fill" style="width:${sp.pct}%"></div></div></div></div>`;
+        <div><h3>${first ? `<a href="#/${S.cid}/l/${first.id}">${esc(section.title)}</a>` : esc(section.title)}</h3><p>${esc(section.summary || "")}</p></div>
+        <div><div class="stat">${soon ? "Coming soon" : `${counts.done} of ${counts.total} lessons`}</div>
+          <div class="lava-track"><div class="lava-fill" style="width:${counts.pct}%"></div></div></div></div>`;
     }).join("")}</div>${STATIC ? backupRow() : ""}</div>`;
   if (STATIC) wireBackup();
-  requestAnimationFrame(() => { const f = $(".big-progress .lava-fill"); if (f) f.style.width = p.pct + "%"; });
+  requestAnimationFrame(() => { const f = $(".big-progress .lava-fill"); if (f) f.style.width = overall.pct + "%"; });
 }
 
+// ---------- views: lesson (video playlist and Watch, Read, Practice steps) ----------
 // The YouTube player is about 1 MB of script, so lessons show its thumbnail and load it on click.
-function playerHtml(v, fallbackTitle, play = false, clip = null) {
-  const title = esc(clip?.title || v.title || fallbackTitle);
-  if (play) return `<iframe src="${ytSrc(v, true, clip)}" title="${title}" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
-  const thumb = v.youtube ? `<img src="https://i.ytimg.com/vi/${encodeURIComponent(v.youtube)}/hqdefault.jpg" alt="" decoding="async">` : "";
+function playerHtml(video, fallbackTitle, play = false, clip = null) {
+  const title = esc(clip?.title || video.title || fallbackTitle);
+  if (play) return `<iframe src="${ytSrc(video, true, clip)}" title="${title}" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
+  const thumb = video.youtube ? `<img src="https://i.ytimg.com/vi/${encodeURIComponent(video.youtube)}/hqdefault.jpg" alt="" decoding="async">` : "";
   return `<button class="yt-poster" aria-label="Play video: ${title}">${thumb}<span class="yt-play" aria-hidden="true"></span></button>`;
 }
 
 // The lesson's videos, as one numbered playlist under the player (like a classroom): each long video
 // with clips is a group of short parts; other videos are single items. Parts you've played get a tick.
 // "Watch the full video" swaps clips for the original (beta, remembered per browser).
-function videoBlock(host, l, videos) {
+function videoBlock(host, lesson, videos) {
   const anyClips = videos.some((v) => v.clips?.length);
+  // What's playing: k = video index, c = clip index (-1 = the whole video), mode = "clips" or "full".
   const st = { k: 0, c: 0, mode: store.get("videoMode") === "full" ? "full" : "clips" };
   const clipsOf = (v) => (st.mode === "clips" && v.clips?.length ? v.clips : null);
   if (!clipsOf(videos[0])) st.c = -1;
   const mins = (s) => `${Math.max(1, Math.round(s / 60))} min`;
-  const watched = (k, c) => !!S.state.watched?.[`${l.id}:${k}:${c}`];
-  const markWatched = (k, c) => { S.state.watched ||= {}; if (!watched(k, c)) { S.state.watched[`${l.id}:${k}:${c}`] = 1; saveState(); } };
+  const watched = (k, c) => !!S.state.watched?.[`${lesson.id}:${k}:${c}`];
+  const markWatched = (k, c) => { S.state.watched ||= {}; if (!watched(k, c)) { S.state.watched[`${lesson.id}:${k}:${c}`] = 1; saveState(); } };
   const practiceTitle = (id) => {
-    const p = (l.practice || []).find((x) => x.id === id);
-    if (!p) return "";
-    if (p.title) return p.title;
-    const q = String(p.question || "").replace(/[`*_#>]/g, "").replace(/\s+/g, " ").trim();  // a quiz: show its question
+    const practice = (lesson.practice || []).find((x) => x.id === id);
+    if (!practice) return "";
+    if (practice.title) return practice.title;
+    const q = String(practice.question || "").replace(/[`*_#>]/g, "").replace(/\s+/g, " ").trim();  // a quiz: show its question
     return `Quick check: ${q.length > 48 ? q.slice(0, 46).trimEnd() + "…" : q}`;
   };
   const credit = (v) => (v.title || "").split(":")[0];           // "freeCodeCamp: SQL Tutorial…" -> "freeCodeCamp"
@@ -551,7 +587,7 @@ function videoBlock(host, l, videos) {
       <div class="step-label">Step 1 · Watch</div>
       ${single ? "" : `<div class="watch-head"><span>${clipCount() ? `${clipCount()} short clips · about ${Math.round(minutes() / 60)} min` : `${videos.length} videos`}</span>
         ${anyClips ? `<button class="link-btn" data-mode="${st.mode === "clips" ? "full" : "clips"}">${st.mode === "clips" ? "Watch full videos instead" : "Use short clips <span class=\"beta\">beta</span>"}</button>` : ""}</div>`}
-      <div class="player">${playerHtml(v, l.title, play, clip)}</div>
+      <div class="player">${playerHtml(v, lesson.title, play, clip)}</div>
       <div class="now-playing">
         <span>${clip ? `<b>Part ${st.c + 1} of ${clips.length}</b> · ${esc(clip.title)}` : esc(v.title || "")}</span>
         ${then ? `<a href="#" class="now-try" data-then="${esc(clip.then)}">Now try: ${esc(then)} →</a>` : ""}
@@ -576,24 +612,26 @@ function videoBlock(host, l, videos) {
   draw();
 }
 
-function ytSrc(v, autoplay = false, clip = null) {
+// The privacy-enhanced YouTube embed URL for a video, a clip of it, or a playlist.
+function ytSrc(video, autoplay = false, clip = null) {
   const base = "https://www.youtube-nocookie.com/embed/";
   const q = new URLSearchParams({ rel: "0", modestbranding: "1" });
   if (autoplay) q.set("autoplay", "1");
   if (clip) { q.set("start", clip.start); q.set("end", clip.end); }
-  else if (v.start) q.set("start", v.start);
-  if (v.playlist) { q.set("list", v.playlist); return `${base}videoseries?${q}`; }
-  return `${base}${encodeURIComponent(v.youtube)}?${q}`;
+  else if (video.start) q.set("start", video.start);
+  if (video.playlist) { q.set("list", video.playlist); return `${base}videoseries?${q}`; }
+  return `${base}${encodeURIComponent(video.youtube)}?${q}`;
 }
 
 // "1 Watch → 2 Read → 3 Practice" under the title: shows the lesson as a flow, jumps to each step,
 // and lights up the step you're reading.
-function lessonSteps(l) {
-  const steps = [l.videos?.length && ["step-watch", "Watch"], ["step-read", "Read"], l.practice?.length && ["step-practice", "Practice"]].filter(Boolean);
+function lessonSteps(lesson) {
+  const steps = [lesson.videos?.length && ["step-watch", "Watch"], ["step-read", "Read"], lesson.practice?.length && ["step-practice", "Practice"]].filter(Boolean);
   if (steps.length < 2) return "";
   return `<nav class="lesson-steps" aria-label="Lesson steps">${steps.map(([id, name], i) =>
     `<button data-step="${id}"><span class="ls-num">${i + 1}</span>${name}</button>${i < steps.length - 1 ? '<span class="ls-line" aria-hidden="true"></span>' : ""}`).join("")}</nav>`;
 }
+// Makes the step buttons scroll to their section and highlights the step in view.
 function wireLessonSteps() {
   const nav = $(".lesson-steps");
   if (!nav) return;
@@ -609,96 +647,99 @@ function wireLessonSteps() {
 }
 
 function renderLesson(id) {
-  const list = allLessons(), i = list.findIndex((l) => l.id === id);
+  const list = allLessons(), i = list.findIndex((x) => x.id === id);
   if (i < 0) { setChrome(); $("#main").innerHTML = `<div class="page"><p class="empty">That lesson doesn't exist. <a href="#/${S.cid}">Back to the course</a></p></div>`; return; }
-  const l = list[i], prev = list[i - 1], next = list[i + 1];
-  S.state.last = l.id; saveState();
-  setChrome({ notesKey: l.id });
-  const videos = l.videos || [];
+  const lesson = list[i], prev = list[i - 1], next = list[i + 1];
+  S.state.last = lesson.id; saveState();
+  setChrome({ notesKey: lesson.id });
+  const videos = lesson.videos || [];
   $("#main").innerHTML = `<article class="page">
-    <div class="crumbs">${esc(l.section.title)}</div>
-    <h1 class="page-title">${esc(l.title)}</h1>
-    <p class="meta">${[l.duration, videos.length ? `${videos.length} video${videos.length > 1 ? "s" : ""}` : "", (l.practice || []).length ? `${l.practice.length} practice` : ""].filter(Boolean).join(", ")}</p>
-    ${lessonSteps(l)}
+    <div class="crumbs">${esc(lesson.section.title)}</div>
+    <h1 class="page-title">${esc(lesson.title)}</h1>
+    <p class="meta">${[lesson.duration, videos.length ? `${videos.length} video${videos.length > 1 ? "s" : ""}` : "", (lesson.practice || []).length ? `${lesson.practice.length} practice` : ""].filter(Boolean).join(", ")}</p>
+    ${lessonSteps(lesson)}
     ${videos.length ? `<section class="block video-block" id="step-watch" aria-label="Watch"></section>` : ""}
-    <section class="block" id="step-read"><div class="step-label">Step ${videos.length ? 2 : 1} · Read</div><div class="prose">${md(l.body.replace(/^\s*# [^\n]*\n/, ""))}</div></section>
-    ${(l.practice || []).length ? `<section class="block" id="step-practice"><div class="step-label">Step ${videos.length ? 3 : 2} · Practice</div><h2>Practice</h2><div id="practice"></div></section>` : ""}
-    ${(l.resources || []).length ? `<section class="block" id="step-deeper"><h2>Go deeper</h2><ul class="resources">${l.resources.map((r) => {
-      let host = ""; try { host = new URL(r.url).hostname.replace(/^www\./, ""); } catch (e) {}
-      return `<li><a href="${esc(r.url)}" target="_blank" rel="noopener"><span>${esc(r.title)}</span><span class="host">${esc(host)} ↗</span></a></li>`;
+    <section class="block" id="step-read"><div class="step-label">Step ${videos.length ? 2 : 1} · Read</div><div class="prose">${md(lesson.body.replace(/^\s*# [^\n]*\n/, ""))}</div></section>
+    ${(lesson.practice || []).length ? `<section class="block" id="step-practice"><div class="step-label">Step ${videos.length ? 3 : 2} · Practice</div><h2>Practice</h2><div id="practice"></div></section>` : ""}
+    ${(lesson.resources || []).length ? `<section class="block" id="step-deeper"><h2>Go deeper</h2><ul class="resources">${lesson.resources.map((res) => {
+      let host = ""; try { host = new URL(res.url).hostname.replace(/^www\./, ""); } catch (e) {}
+      return `<li><a href="${esc(res.url)}" target="_blank" rel="noopener"><span>${esc(res.title)}</span><span class="host">${esc(host)} ↗</span></a></li>`;
     }).join("")}</ul></section>` : ""}
     <div class="lesson-foot">
-      <button class="btn ghost done-btn ${isDone(l.id) ? "is-done" : ""}" id="done-btn"></button>
+      <button class="btn ghost done-btn ${isDone(lesson.id) ? "is-done" : ""}" id="done-btn"></button>
       <div class="nav">
         ${prev ? `<a class="btn ghost small" id="prev-lesson" title="Previous lesson ([)" href="#/${S.cid}/l/${prev.id}">Previous</a>` : ""}
         ${next ? `<a class="btn small" id="next-lesson" title="Next lesson (])" href="#/${S.cid}/l/${next.id}">Next: ${esc(next.title)}</a>` : ""}
-        ${l.section.project ? `<a class="btn ghost small" href="#/${S.cid}/p/${l.section.id}">Section project</a>` : ""}
+        ${lesson.section.project ? `<a class="btn ghost small" href="#/${S.cid}/p/${lesson.section.id}">Section project</a>` : ""}
       </div>
     </div></article>`;
 
-  if (videos.length) videoBlock($(".video-block"), l, videos);
+  if (videos.length) videoBlock($(".video-block"), lesson, videos);
   wireLessonSteps();
 
   const doneBtn = $("#done-btn");
-  const paint = () => { doneBtn.innerHTML = isDone(l.id) ? `<span class="done-check">✓</span> Done` : "Mark as done"; doneBtn.classList.toggle("is-done", isDone(l.id)); };
+  const paint = () => { doneBtn.innerHTML = isDone(lesson.id) ? `<span class="done-check">✓</span> Done` : "Mark as done"; doneBtn.classList.toggle("is-done", isDone(lesson.id)); };
   paint();
   const setDone = (done) => {
-    if (isDone(l.id) === done) return;
-    S.state.done = done ? [...S.state.done, l.id] : S.state.done.filter((x) => x !== l.id);
+    if (isDone(lesson.id) === done) return;
+    S.state.done = done ? [...S.state.done, lesson.id] : S.state.done.filter((x) => x !== lesson.id);
     saveState(); paint(); renderSidebar(); renderProgress();
   };
-  doneBtn.onclick = () => setDone(!isDone(l.id));
+  doneBtn.onclick = () => setDone(!isDone(lesson.id));
   $("#next-lesson")?.addEventListener("click", () => setDone(true));
 
   const host = $("#practice");
-  (l.practice || []).forEach((p) => host.append(p.type === "quiz" ? quizCard(p) : codeCard(p)));
+  (lesson.practice || []).forEach((practice) => host.append(practice.type === "quiz" ? quizCard(practice) : codeCard(practice)));
   if (STATIC && next) idle(() => window.LocalBackend.warmLesson(S.cid, next.id));  // the likely next click
 }
 
+// ---------- views: practice (quiz and code exercise cards) ----------
 // onResult(right) is called after each check. By default (in a lesson) a wrong answer
 // goes into the review queue; the review page passes its own handler.
-function quizCard(p, { onResult = lessonQuizResult(p), heading = "Quick check" } = {}) {
+function quizCard(quiz, { onResult = lessonQuizResult(quiz), heading = "Quick check" } = {}) {
   const el = document.createElement("div");
   el.className = "card practice";
-  el.dataset.practiceId = p.id;
-  const name = `q-${p.id}`;
+  el.dataset.practiceId = quiz.id;
+  const name = `q-${quiz.id}`;
   el.innerHTML = `<div class="practice-head"><h3>${esc(heading)}</h3><span class="badge">Quiz</span></div>
-    <div class="prose">${md(p.question)}</div>
-    <div class="options">${p.options.map((o, i) => `<label class="option"><input type="radio" name="${name}" value="${i}"><span>${esc(o)}</span></label>`).join("")}</div>
+    <div class="prose">${md(quiz.question)}</div>
+    <div class="options">${quiz.options.map((o, i) => `<label class="option"><input type="radio" name="${name}" value="${i}"><span>${esc(o)}</span></label>`).join("")}</div>
     <div class="actions"><button class="btn small">Check answer</button></div><div class="explain" hidden></div>`;
   $("button", el).onclick = () => {
     const picked = $(`input[name="${name}"]:checked`, el);
     const ex = $(".explain", el);
     if (!picked) { ex.hidden = false; ex.textContent = "Pick an answer first."; return; }
-    el.querySelectorAll(".option").forEach((o, i) => { o.classList.remove("correct", "wrong"); if (i === p.answer) o.classList.add("correct"); });
-    const right = +picked.value === p.answer;
+    el.querySelectorAll(".option").forEach((o, i) => { o.classList.remove("correct", "wrong"); if (i === quiz.answer) o.classList.add("correct"); });
+    const right = +picked.value === quiz.answer;
     if (!right) picked.closest(".option").classList.add("wrong");
     ex.hidden = false;
-    ex.innerHTML = `<strong>${right ? "Correct." : "Not quite."}</strong> ${md(p.explanation || "")}`;
+    ex.innerHTML = `<strong>${right ? "Correct." : "Not quite."}</strong> ${md(quiz.explanation || "")}`;
     onResult(right, el);
   };
   return el;
 }
 
-function lessonQuizResult(p) {
+// The default quiz handler in a lesson: a wrong answer joins the review queue.
+function lessonQuizResult(quiz) {
   return (right, el) => {
     if (right || !feature("review")) return;
-    Study.miss(S.state.review, p.id, Study.dayKey());
+    Study.miss(S.state.review, quiz.id, Study.dayKey());
     saveState(); renderSidebar();
     const ex = $(".explain", el);
     ex.insertAdjacentHTML("beforeend", `<p class="review-note">Added to your review queue. It comes back tomorrow.</p>`);
   };
 }
 
-function codeCard(p) {
-  const lang = p.language || S.course.language || "python";
+// A code exercise: editor, Check (runs the tests), Run, solution and reset. Saves as you type.
+function codeCard(exercise) {
+  const lang = exercise.language || S.course.language || "python";
   const el = document.createElement("div");
   el.className = "card practice";
-  el.dataset.practiceId = p.id;
-  const passed = () => S.state.passed.includes(p.id);
-  el.innerHTML = `<div class="practice-head"><h3>${esc(p.title)}</h3>
-      <span><span class="badge">${{ python: "Python", javascript: "JavaScript", typescript: "TypeScript" }[lang]}</span> ${p.needs_api_key ? `<span class="badge key" title="Run uses your real API key from .env; Check is free and offline">Uses API key on Run</span> ` : ""}<span class="badge status"></span></span></div>
-    <div class="prose">${md(p.prompt.replace(/^\s*# [^\n]*\n/, ""))}</div>
+  el.dataset.practiceId = exercise.id;
+  const passed = () => S.state.passed.includes(exercise.id);
+  el.innerHTML = `<div class="practice-head"><h3>${esc(exercise.title)}</h3>
+      <span><span class="badge">${{ python: "Python", javascript: "JavaScript", typescript: "TypeScript" }[lang]}</span> ${exercise.needs_api_key ? `<span class="badge key" title="Run uses your real API key from .env; Check is free and offline">Uses API key on Run</span> ` : ""}<span class="badge status"></span></span></div>
+    <div class="prose">${md(exercise.prompt.replace(/^\s*# [^\n]*\n/, ""))}</div>
     <div class="editor"><textarea></textarea></div>
     <div class="actions">
       <button class="btn small" data-act="check">Check</button>
@@ -716,25 +757,25 @@ function codeCard(p) {
   const cm = CodeMirror.fromTextArea($("textarea", el), {
     mode: { python: "python", javascript: "text/javascript", typescript: "text/typescript" }[lang],
     lineNumbers: true, indentUnit: lang === "python" ? 4 : 2, matchBrackets: true, viewportMargin: Infinity,
-    extraKeys: { Tab: (c) => c.replaceSelection(lang === "python" ? "    " : "  "), "Cmd-Enter": () => go("run"), "Ctrl-Enter": () => go("run"), "Shift-Enter": () => go("check") },
+    extraKeys: { Tab: (editor) => editor.replaceSelection(lang === "python" ? "    " : "  "), "Cmd-Enter": () => go("run"), "Ctrl-Enter": () => go("run"), "Shift-Enter": () => go("check") },
   });
-  S.editors.push(cm);
   let loaded = false;  // never save over the learner's file before it has loaded
-  api(`/courses/${S.cid}/code/${p.id}`).then((code) => { cm.setValue(code); cm.clearHistory(); loaded = true; cm.on("change", () => save()); setTimeout(() => cm.refresh(), 0); })
+  api(`/courses/${S.cid}/code/${exercise.id}`).then((code) => { cm.setValue(code); cm.clearHistory(); loaded = true; cm.on("change", () => save()); setTimeout(() => cm.refresh(), 0); })
     .catch(() => { codeStatus.className = "save-status code-status bad"; codeStatus.textContent = "Couldn't load your saved code"; });
 
   const codeStatus = $(".code-status", el);
   const save = debounce(async () => {
     if (!loaded) return;
-    try { await api(`/courses/${S.cid}/code/${p.id}`, { method: "PUT", body: cm.getValue(), text: true }); codeStatus.className = "save-status code-status"; codeStatus.textContent = "Saved"; }
+    try { await api(`/courses/${S.cid}/code/${exercise.id}`, { method: "PUT", body: cm.getValue(), text: true }); codeStatus.className = "save-status code-status"; codeStatus.textContent = "Saved"; }
     catch (e) { codeStatus.className = "save-status code-status bad"; codeStatus.textContent = "Save failed"; }
   }, 800);
 
   const out = $(".output", el);
   if (STATIC) {  // web version: get the runtime ready once the exercise is on screen
-    const io = new IntersectionObserver((es) => { if (es.some((x) => x.isIntersecting)) { io.disconnect(); window.LocalBackend.warm(S.cid, p.id); } });
+    const io = new IntersectionObserver((es) => { if (es.some((x) => x.isIntersecting)) { io.disconnect(); window.LocalBackend.warm(S.cid, exercise.id); } });
     io.observe(el);
   }
+  // Runs the learner's code (mode "run") or its tests (mode "check") and shows the output.
   async function go(mode) {
     const btns = el.querySelectorAll("[data-act]"), btn = el.querySelector(`[data-act="${mode}"]`);
     btns.forEach((b) => (b.disabled = true));
@@ -749,18 +790,18 @@ function codeCard(p) {
     window.addEventListener("learnpack-runner", onStatus);
     if (STATIC && window.WebRunner.status()) busy(window.WebRunner.status());  // still loading from the warm-up
     try {
-      const r = await api(`/courses/${S.cid}/run`, { method: "POST", body: { practice: p.id, code: cm.getValue(), mode } });
+      const result = await api(`/courses/${S.cid}/run`, { method: "POST", body: { practice: exercise.id, code: cm.getValue(), mode } });
       let html = "";
       if (mode === "check") {
-        const ok = r.results.every((t) => t.passed), n = r.results.filter((t) => t.passed).length;
-        html += `<p class="${ok ? "summary-ok" : "summary-bad"}">${ok ? "All tests passed." : `${n} of ${r.results.length} tests passed.`}</p>`;
-        html += `<ul class="results">${r.results.map((t) => `<li class="${t.passed ? "pass" : "fail"}"><span class="mark">${t.passed ? "✓" : "✗"}</span><span>${esc(t.name.replace(/^test_/, "").replaceAll("_", " "))}${t.passed ? "" : `<span class="err">${esc(t.error.trim())}</span>`}</span></li>`).join("")}</ul>`;
-        if (ok && !passed()) { S.state.passed.push(p.id); saveState(); }
+        const ok = result.results.every((t) => t.passed), passedCount = result.results.filter((t) => t.passed).length;
+        html += `<p class="${ok ? "summary-ok" : "summary-bad"}">${ok ? "All tests passed." : `${passedCount} of ${result.results.length} tests passed.`}</p>`;
+        html += `<ul class="results">${result.results.map((t) => `<li class="${t.passed ? "pass" : "fail"}"><span class="mark">${t.passed ? "✓" : "✗"}</span><span>${esc(t.name.replace(/^test_/, "").replaceAll("_", " "))}${t.passed ? "" : `<span class="err">${esc(t.error.trim())}</span>`}</span></li>`).join("")}</ul>`;
+        if (ok && !passed()) { S.state.passed.push(exercise.id); saveState(); }
         paintStatus();
       }
-      const stdout = esc(r.stdout || "");
-      if (stdout || r.stderr) html += `<pre>${stdout}${r.stderr ? `<span class="stderr">${esc(r.stderr)}</span>` : ""}</pre>`;
-      else if (mode === "run") html += `<pre>(no output, exit code ${r.exit_code})</pre>`;
+      const stdout = esc(result.stdout || "");
+      if (stdout || result.stderr) html += `<pre>${stdout}${result.stderr ? `<span class="stderr">${esc(result.stderr)}</span>` : ""}</pre>`;
+      else if (mode === "run") html += `<pre>(no output, exit code ${result.exit_code})</pre>`;
       out.innerHTML = html;
     } catch (e) {
       out.innerHTML = `<pre class="stderr">Couldn't run your code: ${esc(e.message)}. Is the server still running?</pre>`;
@@ -773,31 +814,32 @@ function codeCard(p) {
   el.addEventListener("click", async (e) => {
     const act = e.target.closest("[data-act]")?.dataset.act;
     if (act === "run" || act === "check") go(act);
-    if (act === "reset" && confirm("Replace your code with the starter code? Your current code will be lost.")) { cm.setValue(p.starter); }
+    if (act === "reset" && confirm("Replace your code with the starter code? Your current code will be lost.")) { cm.setValue(exercise.starter); }
     if (act === "solution") {
       if (!confirm("Show the reference solution? Try to get it passing yourself first.")) return;
-      const { solution } = await api(`/courses/${S.cid}/solution/${p.id}`);
+      const { solution } = await api(`/courses/${S.cid}/solution/${exercise.id}`);
       out.hidden = false; out.innerHTML = `<p><strong>Reference solution</strong></p><pre>${esc(solution)}</pre>`;
     }
   });
   return el;
 }
 
+// ---------- views: project ----------
 function renderProject(sid) {
-  const s = S.course.sections.find((x) => x.id === sid);
-  if (!s?.project) { setChrome(); $("#main").innerHTML = `<div class="page"><p class="empty">No project here. <a href="#/${S.cid}">Back to the course</a></p></div>`; return; }
-  const pr = s.project;
-  setChrome({ notesKey: pr.id });
-  const links = S.state.links[pr.id] || {};
+  const section = S.course.sections.find((x) => x.id === sid);
+  if (!section?.project) { setChrome(); $("#main").innerHTML = `<div class="page"><p class="empty">No project here. <a href="#/${S.cid}">Back to the course</a></p></div>`; return; }
+  const project = section.project;
+  setChrome({ notesKey: project.id });
+  const links = S.state.links[project.id] || {};
   $("#main").innerHTML = `<article class="page">
-    <div class="crumbs">${esc(s.title)}, section project</div>
-    <h1 class="page-title">${esc(pr.title)}</h1>
-    <section class="block prose">${md(pr.brief)}</section>
-    ${(pr.checklist || []).length ? `<section class="block"><h2>Checklist</h2><ul class="checklist">${pr.checklist.map((c, i) => {
-      const k = `${pr.id}:${i}`;
-      return `<li><label><input type="checkbox" data-k="${esc(k)}" ${S.state.checklist[k] ? "checked" : ""}><span>${md(c).replace(/^<p>|<\/p>\s*$/g, "")}</span></label></li>`;
+    <div class="crumbs">${esc(section.title)}, section project</div>
+    <h1 class="page-title">${esc(project.title)}</h1>
+    <section class="block prose">${md(project.brief)}</section>
+    ${(project.checklist || []).length ? `<section class="block"><h2>Checklist</h2><ul class="checklist">${project.checklist.map((item, i) => {
+      const k = `${project.id}:${i}`;
+      return `<li><label><input type="checkbox" data-k="${esc(k)}" ${S.state.checklist[k] ? "checked" : ""}><span>${md(item).replace(/^<p>|<\/p>\s*$/g, "")}</span></label></li>`;
     }).join("")}</ul></section>` : ""}
-    ${pr.links ? `<section class="block"><h2>Where it lives</h2>
+    ${project.links ? `<section class="block"><h2>Where it lives</h2>
       <label class="field">GitHub repo<input type="url" data-link="repo" placeholder="https://github.com/you/project" value="${esc(links.repo || "")}"></label>
       <label class="field">Live URL<input type="url" data-link="live" placeholder="https://your-app.example.com" value="${esc(links.live || "")}"></label>
       <div class="actions">${["repo", "live"].map((k) => /^https?:\/\//.test(links[k] || "") ? `<a class="btn ghost small" href="${esc(links[k])}" target="_blank" rel="noopener">Open ${k === "repo" ? "repo" : "live app"} ↗</a>` : "").join("")}</div>
@@ -808,13 +850,12 @@ function renderProject(sid) {
     saveState(); renderSidebar();
   }));
   $("#main").querySelectorAll("[data-link]").forEach((inp) => (inp.oninput = () => {
-    S.state.links[pr.id] = { ...(S.state.links[pr.id] || {}), [inp.dataset.link]: inp.value.trim() };
+    S.state.links[project.id] = { ...(S.state.links[project.id] || {}), [inp.dataset.link]: inp.value.trim() };
     saveState();
   }));
 }
 
-// ---------- study & focus ----------
-
+// ---------- focus mode and keyboard shortcuts ----------
 // Focus mode: only the lesson stays on screen. F toggles, Esc leaves.
 // Focus mode puts the browser in full screen and leaves the interface as it is. Browsers only allow
 // full screen from a click or key press, so it starts from the button or F, never on page load.
@@ -833,6 +874,7 @@ const Focus = {
 // Leaving full screen with the browser's own Esc also leaves focus mode, so the two stay in sync.
 document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement && Focus.on) Focus.set(false); });
 $("#focus-btn").onclick = () => Focus.set(!Focus.on);
+// True when a key press is going into a text field or code editor, so shortcuts stay out of the way.
 const typing = (t) => t.closest?.("input, textarea, select, [contenteditable='true'], .CodeMirror");
 document.addEventListener("keydown", (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey || typing(e.target) || !feature("focusMode")) return;
@@ -846,12 +888,13 @@ document.addEventListener("keydown", (e) => {
   if (link) { e.preventDefault(); link.click(); }
 });
 
+// ---------- Pomodoro timer ----------
 // Focus timer (Pomodoro). Runs off a wall-clock end time, so it survives page changes and reloads.
 const Timer = {
   phases: { focus: "Focus", short: "Short break", long: "Long break" },
-  lens() {
-    const d = { focus: 25, short: 5, long: 15 };
-    try { return { ...d, ...JSON.parse(store.get("timerLens") || "{}") }; } catch (e) { return d; }
+  lens() {  // phase lengths in minutes, with the learner's changes
+    const defaults = { focus: 25, short: 5, long: 15 };
+    try { return { ...defaults, ...JSON.parse(store.get("timerLens") || "{}") }; } catch (e) { return defaults; }
   },
   load() {
     try { return JSON.parse(store.get("timer") || "null"); } catch (e) { return null; }
@@ -873,8 +916,8 @@ const Timer = {
   finish() {
     const s = this.state;
     if (s.phase === "focus" && S.cid) {
-      const d = Study.dayKey();
-      S.state.pomodoros[d] = (S.state.pomodoros[d] || 0) + 1;
+      const day = Study.dayKey();
+      S.state.pomodoros[day] = (S.state.pomodoros[day] || 0) + 1;
       saveState();
       if (location.hash === `#/${S.cid}`) renderDashboard();  // refresh the Today numbers
     }
@@ -903,22 +946,23 @@ const Timer = {
     document.title = s.running ? `${t} ${this.phases[s.phase]} · ${base}` : base;
   },
 };
+// A soft two-note chime (Web Audio) when a timer phase ends.
 function chime() {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    [660, 880].forEach((f, i) => {
-      const o = ctx.createOscillator(), g = ctx.createGain(), t0 = ctx.currentTime + i * 0.22;
-      o.frequency.value = f; o.connect(g); g.connect(ctx.destination);
-      g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.2, t0 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.5);
-      o.start(t0); o.stop(t0 + 0.55);
+    [660, 880].forEach((freq, i) => {
+      const osc = ctx.createOscillator(), gain = ctx.createGain(), t0 = ctx.currentTime + i * 0.22;
+      osc.frequency.value = freq; osc.connect(gain); gain.connect(ctx.destination);
+      gain.gain.setValueAtTime(0.0001, t0); gain.gain.exponentialRampToValueAtTime(0.2, t0 + 0.02); gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.5);
+      osc.start(t0); osc.stop(t0 + 0.55);
     });
   } catch (e) {}
 }
 function toast(msg) {
-  let t = $("#study-toast");
-  if (!t) { t = document.createElement("div"); t.id = "study-toast"; t.className = "study-toast"; t.setAttribute("role", "status"); document.body.append(t); }
-  t.textContent = msg; t.hidden = false;
-  clearTimeout(t._h); t._h = setTimeout(() => (t.hidden = true), 6000);
+  let box = $("#study-toast");
+  if (!box) { box = document.createElement("div"); box.id = "study-toast"; box.className = "study-toast"; box.setAttribute("role", "status"); document.body.append(box); }
+  box.textContent = msg; box.hidden = false;
+  clearTimeout(box._h); box._h = setTimeout(() => (box.hidden = true), 6000);
 }
 $("#timer-btn").onclick = () => {
   const pop = $("#timer-pop"); pop.hidden = !pop.hidden;
@@ -940,6 +984,7 @@ document.querySelectorAll("[data-len]").forEach((i) => (i.onchange = () => {
 }));
 Timer.init();
 
+// ---------- study time and Today panel ----------
 // Study time: counted in 15 s steps while a lesson, project or review page is open and you're
 // active (input in the last 3 minutes), or a focus session is running (covers watching videos).
 let lastActive = Date.now();
@@ -948,25 +993,26 @@ setInterval(() => {
   if (!S.cid || !S.studyPage || document.visibilityState !== "visible") return;
   const focusing = Timer.state.running && Timer.state.phase === "focus";
   if (!focusing && Date.now() - lastActive > 3 * 60e3) return;
-  const d = Study.dayKey();
-  S.state.study[d] = (S.state.study[d] || 0) + 15;
+  const day = Study.dayKey();
+  S.state.study[day] = (S.state.study[day] || 0) + 15;
   saveState();
 }, 15e3);
 
 const STREAK_MIN = 15 * 60;  // a day counts toward the streak after 15 minutes of study
 const mins = (s) => Math.floor(s / 60);
 
+// The dashboard's Today card: goal ring, streak, focus sessions, reviews due and the last 7 days.
 function todayPanel() {
   const today = Study.dayKey(), studied = S.state.study[today] || 0, goal = S.state.goal;
   const pct = Math.min(100, Math.round((studied / (goal * 60)) * 100));
   const streak = Study.streak(S.state.study, today, STREAK_MIN);
-  const wk = Study.week(S.state.study, today), top = Math.max(goal * 60, ...wk.map((d) => d.seconds));
+  const week = Study.week(S.state.study, today), top = Math.max(goal * 60, ...week.map((d) => d.seconds));
   const due = Study.due(S.state.review, today).length, pomos = S.state.pomodoros[today] || 0;
-  const C = 2 * Math.PI * 42;
+  const circumference = 2 * Math.PI * 42;  // of the goal ring (r = 42)
   return `<section class="card today" aria-label="Today">
     <div class="today-goal">
       <svg class="ring" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="42" class="ring-bg"/>
-        <circle cx="50" cy="50" r="42" class="ring-fill" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - pct / 100)}"/></svg>
+        <circle cx="50" cy="50" r="42" class="ring-fill" stroke-dasharray="${circumference}" stroke-dashoffset="${circumference * (1 - pct / 100)}"/></svg>
       <div class="ring-label"><strong>${mins(studied)}</strong><span>of ${goal} min</span></div>
     </div>
     <div class="today-stats">
@@ -983,9 +1029,9 @@ function todayPanel() {
       </div>
     </div>
     <div class="week" aria-label="Minutes studied, last 7 days">
-      ${wk.map((d) => {
-        const [y, m, dd] = d.key.split("-").map(Number);
-        const label = new Date(y, m - 1, dd).toLocaleDateString(undefined, { weekday: "narrow" });
+      ${week.map((d) => {
+        const [year, month, date] = d.key.split("-").map(Number);
+        const label = new Date(year, month - 1, date).toLocaleDateString(undefined, { weekday: "narrow" });
         const met = d.seconds >= goal * 60;
         return `<div class="week-day ${d.key === today ? "is-today" : ""}" title="${mins(d.seconds)} min on ${d.key}">
           <div class="week-bar"><div class="week-fill ${met ? "met" : ""}" style="height:${Math.round((d.seconds / top) * 100)}%"></div></div><span>${label}</span></div>`;
@@ -999,11 +1045,13 @@ document.addEventListener("change", (e) => {
   saveState(); renderDashboard();
 });
 
+// ---------- views: review ----------
+// Today's due quiz questions, one at a time (spaced repetition in study.js).
 function renderReview() {
   setChrome({ notesKey: null });
   const today = Study.dayKey();
   const queue = Study.due(S.state.review, today).filter((id) => S.quizIndex[id]);
-  const later = Object.values(S.state.review).filter((c) => c.due > today).sort((a, b) => a.due.localeCompare(b.due));
+  const later = Object.values(S.state.review).filter((entry) => entry.due > today).sort((a, b) => a.due.localeCompare(b.due));
   const page = $("#main");
   if (!queue.length) {
     page.innerHTML = `<div class="page"><h1 class="page-title">Review</h1>
@@ -1051,6 +1099,7 @@ function renderReview() {
 // Features default to on; a pack turns one off with "features": {"timer": false}.
 const feature = (name) => !!S.course && S.course.features?.[name] !== false;
 
+// Applies the open course's accent color and add-on stylesheet (or clears them on the home page).
 function applyLook() {
   const root = document.documentElement.style;
   const accent = S.course?.theme?.accent;
@@ -1072,11 +1121,11 @@ const CourseMenu = {
     const menu = $("#course-menu");
     if (!show) { menu.hidden = true; $("#brand").setAttribute("aria-expanded", "false"); return; }
     try { S.courses = await api("/courses"); } catch (e) {}
-    menu.innerHTML = S.courses.map((c) => {
-      const pct = c.total ? Math.round((c.done / c.total) * 100) : 0;
-      return `<a class="course-item ${c.id === S.cid ? "current" : ""}" role="menuitem" href="#/${esc(c.id)}" style="--dot:${esc(c.accent || "var(--accent)")}">
+    menu.innerHTML = S.courses.map((course) => {
+      const pct = course.total ? Math.round((course.done / course.total) * 100) : 0;
+      return `<a class="course-item ${course.id === S.cid ? "current" : ""}" role="menuitem" href="#/${esc(course.id)}" style="--dot:${esc(course.accent || "var(--accent)")}">
         <span class="course-dot" aria-hidden="true"></span>
-        <span class="course-name">${esc(c.title)}</span><span class="course-pct">${pct}%</span></a>`;
+        <span class="course-name">${esc(course.title)}</span><span class="course-pct">${pct}%</span></a>`;
     }).join("") + `<a class="course-item all" role="menuitem" href="#/">All courses</a>`;
     menu.hidden = false;
     $("#brand").setAttribute("aria-expanded", "true");
@@ -1095,7 +1144,7 @@ window.addEventListener("hashchange", () => CourseMenu.toggle(false));
 // Sites that allow framing load live. Sites that refuse are fetched by the server and shown as a
 // reading copy in a sandbox with no scripts; links inside it keep opening in the panel.
 const Browser = {
-  stack: [], at: -1, loadId: 0,
+  stack: [], at: -1, loadId: 0,  // history of URLs, the one shown, and a counter so stale loads are ignored
   get open() { return !$("#browser").hidden; },
   show(url) {
     this.stack = this.stack.slice(0, this.at + 1);
@@ -1105,16 +1154,16 @@ const Browser = {
   go(step) { const i = this.at + step; if (i >= 0 && i < this.stack.length) { this.at = i; this.load(); } },
   close() {
     $("#browser").hidden = true;
-    const f = $("#br-frame"); f.removeAttribute("srcdoc"); f.src = "about:blank";
+    const frame = $("#br-frame"); frame.removeAttribute("srcdoc"); frame.src = "about:blank";
   },
-  state(msg, { error = false } = {}) {
-    const s = $("#br-state");
-    s.hidden = !msg; s.classList.toggle("error", error);
-    s.innerHTML = msg;
+  state(msg, { error = false } = {}) {  // the loading or error message over the panel ("" hides it)
+    const box = $("#br-state");
+    box.hidden = !msg; box.classList.toggle("error", error);
+    box.innerHTML = msg;
     $("#br-ext").hidden = !error;  // leaving the course is only offered when a page can't be shown here
   },
   async load() {
-    const url = this.stack[this.at], id = ++this.loadId, f = $("#br-frame");
+    const url = this.stack[this.at], id = ++this.loadId, frame = $("#br-frame");
     $("#browser").hidden = false;
     $("#br-back").disabled = this.at <= 0;
     $("#br-fwd").disabled = this.at >= this.stack.length - 1;
@@ -1123,19 +1172,19 @@ const Browser = {
     $("#br-ext").href = url; $("#br-mode").hidden = true;
     this.state('<span class="spinner" aria-hidden="true"></span> Loading…');
     try {
-      const r = await api(`/browse?url=${encodeURIComponent(url)}`);
+      const page = await api(`/browse?url=${encodeURIComponent(url)}`);
       if (id !== this.loadId) return;  // a newer click won
-      if (r.title) $("#br-title").textContent = r.title;
-      f.onload = () => { if (id === this.loadId) { this.state(""); if (!r.embeddable) this.hook(); } };
-      f.removeAttribute("srcdoc");
-      if (r.embeddable) {
-        f.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms allow-popups allow-presentation");
-        f.src = r.url;
+      if (page.title) $("#br-title").textContent = page.title;
+      frame.onload = () => { if (id === this.loadId) { this.state(""); if (!page.embeddable) this.hook(); } };
+      frame.removeAttribute("srcdoc");
+      if (page.embeddable) {
+        frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms allow-popups allow-presentation");
+        frame.src = page.url;
       } else {
         $("#br-mode").hidden = false;
-        f.setAttribute("sandbox", "allow-same-origin");  // no scripts run in a reading copy
-        f.src = "about:blank";
-        f.srcdoc = r.html;
+        frame.setAttribute("sandbox", "allow-same-origin");  // no scripts run in a reading copy
+        frame.src = "about:blank";
+        frame.srcdoc = page.html;
       }
     } catch (e) {
       if (id !== this.loadId) return;
@@ -1152,11 +1201,11 @@ const Browser = {
     if (this.BLOCKS.test(host)) {
       return this.state(`<strong>${esc(host.replace(/^www\./, ""))} doesn't allow being shown inside other pages.</strong><br>Use the ↗ button above to open it in a new tab, then come back here.`, { error: true });
     }
-    const f = $("#br-frame");
-    f.onload = () => { if (id === this.loadId) this.state(""); };
-    f.removeAttribute("srcdoc");
-    f.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms allow-popups allow-presentation");
-    f.src = url;
+    const frame = $("#br-frame");
+    frame.onload = () => { if (id === this.loadId) this.state(""); };
+    frame.removeAttribute("srcdoc");
+    frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms allow-popups allow-presentation");
+    frame.src = url;
     $("#br-ext").hidden = false;  // in case the site refuses to load in the panel
   },
   hook() {  // keep link clicks inside a reading copy in the panel
@@ -1215,7 +1264,6 @@ window.addEventListener("hashchange", () => Browser.close());
   window.addEventListener("resize", () => { if (panel.style.width) apply(parseInt(panel.style.width, 10)); });
 })();
 
-
 // ---------- web version only: add a course, back up and restore ----------
 function addCourseCard() {
   return `<label class="card course-card add-course" id="add-course" tabindex="0">
@@ -1231,9 +1279,9 @@ function wireAddCourse() {
     if (!file) return;
     status.className = "add-status"; status.textContent = `Adding ${file.name}…`;
     try {
-      const c = await window.LocalBackend.addPack(file);
+      const course = await window.LocalBackend.addPack(file);
       S.courses = await api("/courses");
-      location.hash = `#/${c.id}`;
+      location.hash = `#/${course.id}`;
     } catch (e) { status.className = "add-status bad"; status.textContent = e.message.replace(/^\d+ /, ""); }
   };
   input.onchange = () => add(input.files[0]);
@@ -1252,14 +1300,14 @@ function backupRow() {
     <span class="add-status" id="backup-status" role="status"></span></div>`;
 }
 function wireBackup() {
-  const say = (msg, bad) => { const s = $("#backup-status"); s.className = "add-status" + (bad ? " bad" : ""); s.textContent = msg; };
+  const say = (msg, bad) => { const box = $("#backup-status"); box.className = "add-status" + (bad ? " bad" : ""); box.textContent = msg; };
   $("#backup-btn").onclick = async () => {
     const data = await window.LocalBackend.backup(S.cid);
-    const a = Object.assign(document.createElement("a"), {
+    const link = Object.assign(document.createElement("a"), {
       href: URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" })),
       download: `${S.cid}-backup-${new Date().toISOString().slice(0, 10)}.json`,
     });
-    document.body.append(a); a.click(); a.remove();
+    document.body.append(link); link.click(); link.remove();
     say("Backup downloaded. Keep it somewhere safe.");
   };
   $("#restore-file").onchange = async (e) => {

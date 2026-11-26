@@ -31,6 +31,8 @@ STATIC_TYPES = {".html": "text/html", ".js": "text/javascript", ".css": "text/cs
 
 
 class App:
+    """Where courses and learner data live, plus the session token the browser must send."""
+
     def __init__(self, courses_dir: Path, data_dir: Path, token: str):
         self.courses_dir, self.data_dir, self.token = Path(courses_dir), Path(data_dir), token
 
@@ -39,44 +41,50 @@ class App:
         return {load_pack(p)["id"]: p for p in list_packs(self.courses_dir)}
 
     def course(self, cid):
+        """(course dict, pack folder) for a course id, or (None, None)."""
         pack = self.packs().get(cid)
         return (load_pack(pack), pack) if pack else (None, None)
 
     def file(self, cid, kind, item_id, ext) -> Path:
+        """Where a learner file is saved; ids are checked against ID_RE before they get here."""
         return self.data_dir / cid / kind / f"{item_id}{ext}"
 
     def note_files(self, cid, nid):
-        d = self.data_dir / cid / "notes"
-        return d / f"{nid}.html", d / f"{nid}.md"
+        """(html, md) paths for a note. Rich-text notes are .html; older notes may still be .md."""
+        notes_dir = self.data_dir / cid / "notes"
+        return notes_dir / f"{nid}.html", notes_dir / f"{nid}.md"
 
     def list_notes(self, cid) -> list:
-        d = self.data_dir / cid / "notes"
-        if not d.is_dir():
+        """Every note as {id, modified, text}, newest first. An .html note wins over an .md of the same id."""
+        notes_dir = self.data_dir / cid / "notes"
+        if not notes_dir.is_dir():
             return []
         out = []
-        for f in d.iterdir():
-            if f.suffix == ".html" or (f.suffix == ".md" and not f.with_suffix(".html").exists()):
-                raw = f.read_text()
-                out.append({"id": f.stem, "modified": int(f.stat().st_mtime * 1000),
-                            "text": plain_text(raw) if f.suffix == ".html" else raw})
+        for path in notes_dir.iterdir():
+            if path.suffix == ".html" or (path.suffix == ".md" and not path.with_suffix(".html").exists()):
+                raw = path.read_text()
+                out.append({"id": path.stem, "modified": int(path.stat().st_mtime * 1000),
+                            "text": plain_text(raw) if path.suffix == ".html" else raw})
         return sorted(out, key=lambda n: -n["modified"])
 
     def state(self, cid) -> dict:
-        p = self.data_dir / cid / "state.json"
+        """The learner's progress for a course; a fresh state if none is saved yet."""
+        path = self.data_dir / cid / "state.json"
         try:
-            return json.loads(p.read_text())
+            return json.loads(path.read_text())
         except (OSError, json.JSONDecodeError):
             return {"done": [], "checklist": {}, "links": {}, "last": ""}
 
 
 def plain_text(html: str) -> str:
     """Note HTML -> plain text, one line per block. Used for titles, previews and search."""
-    s = re.sub(r"<(br|/div|/p|/li|/h[1-6]|/pre)\b[^>]*>", "\n", html, flags=re.I)
-    s = unescape(re.sub(r"<[^>]+>", "", s)).replace("\xa0", " ")
-    return "\n".join(line.strip() for line in s.splitlines() if line.strip())
+    text = re.sub(r"<(br|/div|/p|/li|/h[1-6]|/pre)\b[^>]*>", "\n", html, flags=re.I)
+    text = unescape(re.sub(r"<[^>]+>", "", text)).replace("\xa0", " ")
+    return "\n".join(line.strip() for line in text.splitlines() if line.strip())
 
 
 def write_atomic(path: Path, text: str):
+    """Write via a temp file and rename, so a crash mid-write never leaves a half-written file."""
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, tmp = tempfile.mkstemp(dir=path.parent)
     with os.fdopen(fd, "w", encoding="utf-8") as f:
@@ -85,10 +93,11 @@ def write_atomic(path: Path, text: str):
 
 
 def make_handler(app: App, port: int):
+    """The request handler class for this app: static files from web/, pack assets, and the JSON API."""
     allowed_hosts = {f"localhost:{port}", f"127.0.0.1:{port}"}
 
     class Handler(BaseHTTPRequestHandler):
-        def log_message(self, *a):
+        def log_message(self, *args):  # keep the terminal quiet
             pass
 
         def send(self, code, body, ctype="application/json", headers=None):
@@ -161,6 +170,7 @@ def make_handler(app: App, port: int):
                 if not path.startswith("/api/"):
                     return self.static(path) if method == "GET" else self.send(405, {"error": "method"})
                 parts = [unquote(p) for p in path.split("/")[2:] if p]
+                # Every id after the first segment becomes part of a file path, so only safe ids get through.
                 if parts[1:] and not all(ID_RE.match(p) for p in parts[1:]):
                     return self.send(404, {"error": "not found"})
                 return self.api(method, parts)
@@ -185,7 +195,7 @@ def make_handler(app: App, port: int):
                 if f:
                     return self.send(200, f.read_bytes(), COVER_TYPES[f.suffix.lower()])
                 return self.send(404, "not found", "text/plain")
-            f = (WEB / path.lstrip("/")).resolve()
+            f = (WEB / path.lstrip("/")).resolve()  # resolve() + is_relative_to stops ../ escaping web/
             if f.is_relative_to(WEB) and f.is_file() and f.suffix in STATIC_TYPES:
                 return self.send(200, f.read_bytes(), STATIC_TYPES[f.suffix])
             self.send(404, "not found", "text/plain")
@@ -200,12 +210,12 @@ def make_handler(app: App, port: int):
             if parts == ["courses"] and method == "GET":
                 out = []
                 for cid, pack in app.packs().items():
-                    c = load_pack(pack)
-                    total = sum(1 for _ in lessons(c))
-                    done = len(set(app.state(cid)["done"]) & {l["id"] for _, l in lessons(c)})
-                    out.append({"id": cid, "title": c["title"], "description": c.get("description", ""),
-                                "accent": c.get("theme", {}).get("accent"), "total": total, "done": done,
-                                "cover": {m: f"/packs/{cid}/cover-{m}" for m in cover_files(c, pack)} or None})
+                    info = load_pack(pack)
+                    total = sum(1 for _ in lessons(info))
+                    done = len(set(app.state(cid)["done"]) & {lesson["id"] for _, lesson in lessons(info)})
+                    out.append({"id": cid, "title": info["title"], "description": info.get("description", ""),
+                                "accent": info.get("theme", {}).get("accent"), "total": total, "done": done,
+                                "cover": {mode: f"/packs/{cid}/cover-{mode}" for mode in cover_files(info, pack)} or None})
                 return self.send(200, out)
             if len(parts) < 2 or parts[0] != "courses":
                 return self.send(404, {"error": "not found"})
@@ -232,24 +242,26 @@ def make_handler(app: App, port: int):
                 if method == "GET":
                     if f.is_file():
                         return self.send(200, f.read_text(), "text/plain")
-                    p = find_practice(course, rest[1])
-                    return self.send(200, (p or {}).get("starter", ""), "text/plain")
+                    practice = find_practice(course, rest[1])
+                    return self.send(200, (practice or {}).get("starter", ""), "text/plain")
                 if method == "PUT":
                     write_atomic(f, self.body().decode("utf-8"))
                     return self.send(200, {"ok": True})
             if len(rest) == 2 and rest[0] == "solution" and method == "GET":
-                p = find_practice(course, rest[1])
-                return self.send(200, {"solution": p["solution"]}) if p and "solution" in p else self.send(404, {})
+                practice = find_practice(course, rest[1])
+                if practice and "solution" in practice:
+                    return self.send(200, {"solution": practice["solution"]})
+                return self.send(404, {})
             if rest == ["run"] and method == "POST":
                 req = json.loads(self.body())
-                p = find_practice(course, str(req.get("practice", "")))
-                if not p or p.get("type") != "code":
+                practice = find_practice(course, str(req.get("practice", "")))
+                if not practice or practice.get("type") != "code":
                     return self.send(404, {"error": "no such practice"})
                 support = pack / course["support"] if course.get("support") else None
                 code = str(req.get("code", ""))
-                lang = practice_lang(course, p)
-                if req.get("mode") == "check":
-                    return self.send(200, check_code(code, p["tests"], support_dir=support, lang=lang))
+                lang = practice_lang(course, practice)
+                if req.get("mode") == "check":  # hidden tests run here and never reach the browser
+                    return self.send(200, check_code(code, practice["tests"], support_dir=support, lang=lang))
                 return self.send(200, run_code(code, support_dir=support, lang=lang))
             self.send(404, {"error": "not found"})
 
@@ -257,6 +269,7 @@ def make_handler(app: App, port: int):
 
 
 def serve(port: int, courses_dir=ROOT / "courses", data_dir=ROOT / "learner-data", token=None):
+    """Create (not start) the server on 127.0.0.1 only. Returns (httpd, app); port=0 picks a free port."""
     app = App(courses_dir, data_dir, token or secrets.token_urlsafe(24))
     httpd = ThreadingHTTPServer(("127.0.0.1", port), BaseHTTPRequestHandler)
     httpd.RequestHandlerClass = make_handler(app, httpd.server_address[1])  # real port when port=0
@@ -264,72 +277,74 @@ def serve(port: int, courses_dir=ROOT / "courses", data_dir=ROOT / "learner-data
 
 
 def validate(pack_dir: Path) -> int:
+    """Check a pack's structure, then run each code item's reference solution against its tests. Exit code."""
     problems = validate_pack(pack_dir)
-    for p in problems:
-        print("✗", p)
+    for problem in problems:
+        print("✗", problem)
     if problems:
         return 1
     course = load_pack(pack_dir)
     support = pack_dir / course["support"] if course.get("support") else None
     failed = 0
-    for p in practice_items(course):
-        if p["type"] != "code":
+    for item in practice_items(course):
+        if item["type"] != "code":
             continue
-        r = check_code(p["solution"], p["tests"], support_dir=support, lang=practice_lang(course, p))
-        bad = [t for t in r["results"] if not t["passed"]]
-        print("✗" if bad else "✓", p["id"], *(f"\n    {t['name']}: {t['error'].strip()}" for t in bad))
+        result = check_code(item["solution"], item["tests"], support_dir=support, lang=practice_lang(course, item))
+        bad = [t for t in result["results"] if not t["passed"]]
+        print("✗" if bad else "✓", item["id"], *(f"\n    {t['name']}: {t['error'].strip()}" for t in bad))
         failed += bool(bad)
     print(f"\n{len(list(lessons(course)))} lessons, {failed} failing practice item(s)")
     return 1 if failed else 0
 
 
 def already_running(url: str) -> bool:
+    """Is LearnPack itself on this port? Its index page carries LEARN_TOKEN; other apps' pages don't."""
     try:
-        with urllib.request.urlopen(url, timeout=2) as r:
-            return "LEARN_TOKEN" in r.read(4096).decode("utf-8", "ignore")
+        with urllib.request.urlopen(url, timeout=2) as resp:
+            return "LEARN_TOKEN" in resp.read(4096).decode("utf-8", "ignore")
     except OSError:
         return False
 
 
 def main():
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", nargs="?", default="serve", choices=["serve", "validate", "build-web", "bundle"])
-    ap.add_argument("pack", nargs="?", help="pack folder (validate, bundle) or output folder (build-web)")
-    ap.add_argument("out", nargs="?", help="output file for bundle")
-    ap.add_argument("--port", type=int, default=8000)
-    ap.add_argument("--no-browser", action="store_true", help="don't open the browser")
-    a = ap.parse_args()
-    if a.command == "build-web":
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("command", nargs="?", default="serve", choices=["serve", "validate", "build-web", "bundle"])
+    parser.add_argument("pack", nargs="?", help="pack folder (validate, bundle) or output folder (build-web)")
+    parser.add_argument("out", nargs="?", help="output file for bundle")
+    parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument("--no-browser", action="store_true", help="don't open the browser")
+    args = parser.parse_args()
+    if args.command == "build-web":
         from engine.webbuild import build_web
-        out = Path(a.pack or "site")
+        out = Path(args.pack or "site")
         ids = build_web(out)
         print(f"Built the web version in {out}/ with: {', '.join(ids) or 'no courses'}")
         return
-    if a.command == "bundle":
+    if args.command == "bundle":
         from engine.webbuild import bundle
-        if not a.pack:
-            ap.error("bundle needs a pack folder")
-        course = bundle(Path(a.pack))
-        out = Path(a.out or f"{course['id']}.learnpack.json")
+        if not args.pack:
+            parser.error("bundle needs a pack folder")
+        course = bundle(Path(args.pack))
+        out = Path(args.out or f"{course['id']}.learnpack.json")
         out.write_text(json.dumps(course, ensure_ascii=False), encoding="utf-8")
         print(f"Wrote {out}: drag it into the web version to add the course")
         return
-    if a.command == "validate":
-        if not a.pack:
-            ap.error("validate needs a pack folder")
-        sys.exit(validate(Path(a.pack)))
-    url = f"http://localhost:{a.port}"
+    if args.command == "validate":
+        if not args.pack:
+            parser.error("validate needs a pack folder")
+        sys.exit(validate(Path(args.pack)))
+    url = f"http://localhost:{args.port}"
     try:
-        httpd, _ = serve(a.port)
+        httpd, _ = serve(args.port)
     except OSError:
         if already_running(url):  # double-clicked again: reuse the running app
             print(f"Already running at {url}")
-            if not a.no_browser:
+            if not args.no_browser:
                 webbrowser.open(url)
             return
-        sys.exit(f"Port {a.port} is busy with something else. Try: python3 server.py --port 8001")
+        sys.exit(f"Port {args.port} is busy with something else. Try: python3 server.py --port 8001")
     print(f"Learning platform running at {url}\nKeep this window open while you study. Close it (or press Ctrl+C) to stop.")
-    if not a.no_browser:
+    if not args.no_browser:
         webbrowser.open(url)
     try:
         httpd.serve_forever()

@@ -1,4 +1,8 @@
-"""Load and validate course packs. A pack is a folder with course.json (see course.schema.json)."""
+"""Load and validate course packs. A pack is a folder with course.json (see course.schema.json).
+
+server.py serves packs through public_course (tests and solutions stripped), `server.py validate`
+runs validate_pack, and webbuild bundles packs for the static web version.
+"""
 import copy
 import json
 import re
@@ -7,21 +11,24 @@ from pathlib import Path
 ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 FORMAT = 1  # the pack format this engine reads; bump on breaking changes
 LANGUAGES = ("python", "javascript", "typescript")
-# Interface features a pack can switch off. Learners can switch them off too, in Settings.
+# Interface features a pack can switch off with "features": {"timer": false}. There is no settings screen.
 FEATURES = ("notes", "timer", "focusMode", "studyStats", "review", "browser")
 COLOR_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
-
-
-def practice_lang(course: dict, p: dict) -> str:
-    return p.get("language") or course.get("language") or "python"
+# Fields that may be written inline or as {"file": "path"} in course.json (mirrored in web/local.js).
 TEXT_FIELDS = {"description", "summary", "body", "prompt", "starter", "tests", "solution", "brief", "question", "explanation"}
 
 
+def practice_lang(course: dict, p: dict) -> str:
+    """A practice item's language: its own, else the course's, else Python."""
+    return p.get("language") or course.get("language") or "python"
+
+
 class PackError(Exception):
-    pass
+    """A pack can't be loaded: bad JSON, a missing file, or a path that leaves the pack."""
 
 
 def _read(pack_dir: Path, rel: str) -> str:
+    # Pack files come from course authors, so a path like ../../secret must not escape the pack folder.
     path = (pack_dir / rel).resolve()
     if not path.is_relative_to(pack_dir.resolve()):
         raise PackError(f"file outside pack: {rel}")
@@ -43,7 +50,7 @@ def cover_files(course: dict, pack_dir: Path) -> dict:
         raise PackError('theme.cover must be an image path, or {"light": ..., "dark": ...}')
     out = {}
     for mode in ("light", "dark"):
-        rel = rels.get(mode) or rels.get("light" if mode == "dark" else "dark")
+        rel = rels.get(mode) or rels.get("light" if mode == "dark" else "dark")  # one mode given: use it for both
         path = (pack_dir / rel).resolve()
         if not path.is_relative_to(Path(pack_dir).resolve()):
             raise PackError(f"file outside pack: {rel}")
@@ -76,6 +83,7 @@ def _resolve(node, pack_dir: Path):
 
 
 def load_pack(pack_dir: Path) -> dict:
+    """course.json with every include and {"file": ...} field resolved. Raises PackError."""
     pack_dir = Path(pack_dir)
     try:
         raw = json.loads((pack_dir / "course.json").read_text(encoding="utf-8"))
@@ -85,31 +93,31 @@ def load_pack(pack_dir: Path) -> dict:
 
 
 def lessons(course: dict):
-    for s in course.get("sections", []):
-        for l in s.get("lessons", []):
-            yield s, l
+    """Yield (section, lesson) for every lesson, in course order."""
+    for section in course.get("sections", []):
+        for lesson in section.get("lessons", []):
+            yield section, lesson
 
 
 def practice_items(course: dict):
-    for _, l in lessons(course):
-        yield from l.get("practice", [])
+    """Yield every practice item (code or quiz) in course order."""
+    for _, lesson in lessons(course):
+        yield from lesson.get("practice", [])
 
 
 def find_practice(course: dict, practice_id: str):
+    """The practice item with this id, or None."""
     return next((p for p in practice_items(course) if p.get("id") == practice_id), None)
 
 
-def find_lesson(course: dict, lesson_id: str):
-    return next((l for _, l in lessons(course) if l.get("id") == lesson_id), None)
-
-
 def validate_pack(pack_dir: Path) -> list[str]:
+    """Every problem found in the pack, as readable messages. An empty list means the pack is valid."""
     try:
         course = load_pack(pack_dir)
     except PackError as e:
         return [str(e)]
     problems = []
-    seen = set()
+    seen = set()  # ids must be unique across the whole course, since they name saved files and URLs
 
     def need(obj, where, *keys):
         for k in keys:
@@ -117,13 +125,13 @@ def validate_pack(pack_dir: Path) -> list[str]:
                 problems.append(f"{where}: missing '{k}'")
 
     def check_id(obj, where):
-        i = obj.get("id")
-        if not isinstance(i, str) or not ID_RE.match(i):
-            problems.append(f"{where}: bad id {i!r} (use lowercase letters, digits, dashes)")
-        elif i in seen:
-            problems.append(f"{where}: duplicate id {i!r}")
+        item_id = obj.get("id")
+        if not isinstance(item_id, str) or not ID_RE.match(item_id):
+            problems.append(f"{where}: bad id {item_id!r} (use lowercase letters, digits, dashes)")
+        elif item_id in seen:
+            problems.append(f"{where}: duplicate id {item_id!r}")
         else:
-            seen.add(i)
+            seen.add(item_id)
 
     need(course, "course", "id", "title", "sections")
     check_id(course, "course")
@@ -168,15 +176,16 @@ def validate_pack(pack_dir: Path) -> list[str]:
                 if not isinstance(clips, list):
                     problems.append(f"{lw}: clips must be a list")
                     continue
-                for i, cl in enumerate(clips, 1):
+                for i, clip in enumerate(clips, 1):
                     cw = f"{lw}: clip {i}"
-                    start, end = cl.get("start"), cl.get("end")
-                    if not cl.get("title"):
+                    start, end = clip.get("start"), clip.get("end")
+                    if not clip.get("title"):
                         problems.append(f"{cw} needs a title")
+                    # type() rather than isinstance(): True/False are ints too, and aren't valid times.
                     if not (type(start) is int and type(end) is int and 0 <= start < end):
                         problems.append(f"{cw} needs whole-second start and end, with start < end")
-                    if "then" in cl and cl["then"] not in practice_ids:
-                        problems.append(f"{cw}: 'then' points to {cl['then']!r}, which isn't a practice item in this lesson")
+                    if "then" in clip and clip["then"] not in practice_ids:
+                        problems.append(f"{cw}: 'then' points to {clip['then']!r}, which isn't a practice item in this lesson")
             for r in l.get("resources", []):
                 if not str(r.get("url", "")).startswith(("http://", "https://")):
                     problems.append(f"{lw}: resource url must be http(s)")
@@ -194,9 +203,9 @@ def validate_pack(pack_dir: Path) -> list[str]:
                 else:
                     problems.append(f"{pw}: type must be 'code' or 'quiz'")
         if "project" in s:
-            pr = s["project"]
-            need(pr, f"project in {sw}", "title", "brief")
-            if not isinstance(pr.get("checklist", []), list):
+            project = s["project"]
+            need(project, f"project in {sw}", "title", "brief")
+            if not isinstance(project.get("checklist", []), list):
                 problems.append(f"project in {sw}: checklist must be a list")
     return problems
 
@@ -212,5 +221,6 @@ def public_course(course: dict) -> dict:
 
 
 def list_packs(courses_dir: Path) -> list[Path]:
+    """Pack folders in courses_dir, skipping ones starting with _ (like _template)."""
     return sorted(p for p in Path(courses_dir).iterdir()
                   if p.is_dir() and not p.name.startswith("_") and (p / "course.json").is_file())

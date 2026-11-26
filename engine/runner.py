@@ -1,4 +1,9 @@
-"""Run learner code with the real local Python, in a throwaway folder."""
+"""Run learner code with the real local Python (or Node), in a throwaway folder.
+
+server.py calls run_code for the Run button and check_code for Check, which runs a practice
+item's hidden tests through a small harness and returns one result per test. There is no sandbox:
+this is the learner's own machine running their own code, bounded only by a timeout.
+"""
 import json
 import os
 import shutil
@@ -10,7 +15,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 MARKER = "__LEARN_RESULTS__"
 
-# Runs every test_* function in tests.py in file order and prints one JSON line.
+# Runs every test_* function in tests.py in file order and prints one JSON line after MARKER.
 HARNESS = f"""
 import json, traceback, inspect, os
 
@@ -47,6 +52,7 @@ print("\\n{MARKER}" + json.dumps(results))  # own line, even if the learner prin
 
 
 def python_bin() -> str:
+    """The interpreter that runs learner code."""
     # The course's own environment if it exists (Mac/Linux, then Windows layout), else this Python.
     for venv in (ROOT / ".venv" / "bin" / "python", ROOT / ".venv" / "Scripts" / "python.exe"):
         if venv.exists():
@@ -55,6 +61,7 @@ def python_bin() -> str:
 
 
 def _env(support_dir) -> dict:
+    """Environment for learner code: ours, plus keys from the project's .env (e.g. API keys), plus support_dir."""
     env = dict(os.environ)
     dotenv = ROOT / ".env"
     if dotenv.is_file():
@@ -62,7 +69,7 @@ def _env(support_dir) -> dict:
             line = line.strip()
             if line and not line.startswith("#") and "=" in line:
                 k, v = line.split("=", 1)
-                env.setdefault(k.strip(), v.strip().strip("'\""))
+                env.setdefault(k.strip(), v.strip().strip("'\""))  # real environment variables win
     if support_dir:
         # Absolute: code runs from a temp folder, so a relative path would point nowhere.
         env["PYTHONPATH"] = os.pathsep.join(filter(None, [str(Path(support_dir).resolve()), env.get("PYTHONPATH")]))
@@ -100,6 +107,7 @@ LANGS = {"python": "py", "javascript": "js", "typescript": "ts"}
 
 
 def _cmd(lang: str, script: str) -> list[str]:
+    """The command line that runs script in lang."""
     if lang == "python":
         return [python_bin(), script]
     node = shutil.which("node")
@@ -109,54 +117,62 @@ def _cmd(lang: str, script: str) -> list[str]:
 
 
 def _exec(workdir: Path, script: str, support_dir, timeout, lang="python") -> dict:
+    """Run script in workdir; {stdout, stderr, exit_code, timed_out}. A timeout kills the process."""
     try:
-        p = subprocess.run(_cmd(lang, script), cwd=workdir, env=_env(support_dir),
-                           capture_output=True, text=True, timeout=timeout)
-        return {"stdout": p.stdout, "stderr": p.stderr, "exit_code": p.returncode, "timed_out": False}
+        proc = subprocess.run(_cmd(lang, script), cwd=workdir, env=_env(support_dir),
+                              capture_output=True, text=True, timeout=timeout)
+        return {"stdout": proc.stdout, "stderr": proc.stderr, "exit_code": proc.returncode, "timed_out": False}
     except subprocess.TimeoutExpired as e:
+        # Keep whatever was printed before the timeout; it can arrive as bytes despite text=True.
         out = e.stdout.decode() if isinstance(e.stdout, bytes) else (e.stdout or "")
         return {"stdout": out, "stderr": f"Stopped: your code ran longer than {timeout} seconds.",
                 "exit_code": None, "timed_out": True}
-    except FileNotFoundError as e:
+    except FileNotFoundError as e:  # no Node installed (raised by _cmd)
         return {"stdout": "", "stderr": str(e), "exit_code": None, "timed_out": False}
 
 
-def _prepare(d: Path, lang: str, support_dir):
+def _prepare(workdir: Path, lang: str, support_dir):
+    """Set up workdir for JS/TS: treat files as ES modules and copy in the pack's support files."""
     if lang != "python":
-        (d / "package.json").write_text('{"type": "module"}')
+        (workdir / "package.json").write_text('{"type": "module"}')
         if support_dir:  # ES modules ignore NODE_PATH, so copy helpers next to the code
             for f in Path(support_dir).resolve().glob("*"):
                 if f.suffix in (".js", ".mjs", ".ts", ".json") and f.is_file():
-                    shutil.copy(f, d / f.name)
+                    shutil.copy(f, workdir / f.name)
 
 
 def run_code(code: str, *, support_dir=None, timeout=60, lang="python") -> dict:
+    """Run the learner's code as a script and return its output (see _exec)."""
     ext = LANGS[lang]
-    with tempfile.TemporaryDirectory() as d:
-        _prepare(Path(d), lang, support_dir)
-        Path(d, f"solution.{ext}").write_text(code)
-        return _exec(Path(d), f"solution.{ext}", support_dir, timeout, lang)
+    with tempfile.TemporaryDirectory() as tmp:
+        workdir = Path(tmp)
+        _prepare(workdir, lang, support_dir)
+        (workdir / f"solution.{ext}").write_text(code)
+        return _exec(workdir, f"solution.{ext}", support_dir, timeout, lang)
 
 
 def check_code(code: str, tests: str, *, support_dir=None, timeout=60, lang="python") -> dict:
+    """Run tests against the learner's code. Like run_code, plus results: [{name, passed, error}]."""
     ext = LANGS[lang]
-    with tempfile.TemporaryDirectory() as d:
-        _prepare(Path(d), lang, support_dir)
-        Path(d, f"solution.{ext}").write_text(code)
-        Path(d, f"tests.{ext}").write_text(tests)
+    with tempfile.TemporaryDirectory() as tmp:
+        workdir = Path(tmp)
+        _prepare(workdir, lang, support_dir)
+        (workdir / f"solution.{ext}").write_text(code)
+        (workdir / f"tests.{ext}").write_text(tests)
         if lang == "python":
-            Path(d, "_harness.py").write_text(HARNESS)
-            r = _exec(Path(d), "_harness.py", support_dir, timeout)
+            (workdir / "_harness.py").write_text(HARNESS)
+            result = _exec(workdir, "_harness.py", support_dir, timeout)
         else:
-            Path(d, f"_harness.{ext}").write_text(JS_HARNESS.replace("EXT", ext))
-            r = _exec(Path(d), f"_harness.{ext}", support_dir, timeout, lang)
+            (workdir / f"_harness.{ext}").write_text(JS_HARNESS.replace("EXT", ext))
+            result = _exec(workdir, f"_harness.{ext}", support_dir, timeout, lang)
+    # The harness prints its JSON last; rpartition takes the last marker, so one the learner printed earlier is ignored.
     results = []
-    out, sep, tail = r["stdout"].rpartition("\n" + MARKER)
+    out, sep, tail = result["stdout"].rpartition("\n" + MARKER)
     if sep:
         results = json.loads(tail.strip())
-        r["stdout"] = out
-    if not results:
+        result["stdout"] = out
+    if not results:  # crashed or timed out before reporting: one failing result that says why
         results = [{"name": "tests", "passed": False,
-                    "error": "Timed out" if r["timed_out"] else (r["stderr"] or "Tests did not run")}]
-    r["results"] = results
-    return r
+                    "error": "Timed out" if result["timed_out"] else (result["stderr"] or "Tests did not run")}]
+    result["results"] = results
+    return result

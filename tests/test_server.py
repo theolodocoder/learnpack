@@ -1,3 +1,4 @@
+"""End-to-end tests for server.py: a real server on a free port, serving a copy of courses/_template."""
 import json
 import shutil
 import threading

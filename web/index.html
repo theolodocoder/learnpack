@@ -16,7 +16,9 @@
   <link rel="stylesheet" id="hl-dark" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" disabled>
   <link rel="stylesheet" href="style.css">
   <script>
+    // server.py fills in the API token. Left as the placeholder (static hosting), app.js runs as the web version.
     window.LEARN_TOKEN = "__TOKEN__";
+    // Apply the saved theme before the first paint, so the page doesn't flash the wrong colours.
     try { const t = localStorage.getItem("theme"); if (t && t !== "system") document.documentElement.dataset.theme = t; } catch (e) {}
   </script>
 </head>

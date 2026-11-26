@@ -1,3 +1,4 @@
+"""Tests for engine/browse.py: URL safety checks, frame detection and the reading copy."""
 import pytest
 
 from engine.browse import BrowseError, check_url, frame_allowed, readable
