@@ -1,36 +1,24 @@
-# Your own learning data: progress, notes, saved code
+# Your learning data: progress, notes and saved code
 learner-data/
 
 # Secrets
 .env
 
-# Python / tooling
+# Build output (python server.py build-web)
+_site/
+
+# Python
 .venv/
 __pycache__/
 *.pyc
 .pytest_cache/
 uv.lock
 
-# OS / editors
+# Node (only if you install test tools locally)
+node_modules/
+
+# OS and editors
 .DS_Store
 .claude/
 .vscode/
 .idea/
-
-# Personal and internal working notes (not part of the project)
-ROADMAP.md
-docs/superpowers/
-docs/content-brief.md
-docs/frontend-brief.md
-
-# Paid / unreleased course packs (kept locally, not published)
-courses/frontend-senior/
-docs/frontend-research.md
-_site/
-
-# Private pack (kept to sell) and the research notes
-courses/forex-trading/
-docs/se-research.md
-docs/se-brief.md
-docs/forex-research.md
-docs/forex-brief.md
