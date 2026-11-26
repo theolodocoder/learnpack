@@ -1,3 +1,24 @@
+/* LearnPack styles: one stylesheet for the server and web versions. A course pack can load its own
+   stylesheet on top (theme.css in course.json) and set its accent colour.
+
+   Contents
+     Design tokens (light and dark)   Base
+     Top bar                          Layout
+     Sidebar                          Lava progress
+     Buttons                          Mark as done
+     Page content                     Video and lesson flow
+     Prose                            Resources
+     Practice (editor, output)        Quiz
+     Lesson footer                    Dashboard
+     Project                          Notes drawer
+     Status messages                  Small screens
+     Study & focus (timer, review, Today panel)
+     Course switcher                  In-app browser panel
+     Web version: add a course, back up and restore
+     Phones */
+
+/* Design tokens. Dark applies when the system is dark and the learner hasn't picked light,
+   or when they picked dark (app.js sets data-theme on <html>). */
 :root {
   --bg: #F6F4F2;
   --surface: #FFFFFF;
@@ -32,6 +53,7 @@
   --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25); color-scheme: dark;
 }
 
+/* Base */
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body { background: var(--bg); color: var(--ink); font: 16px/1.6 var(--font-body); -webkit-font-smoothing: antialiased; }
@@ -85,7 +107,6 @@ button.side-section-head:hover { background: var(--sunken); }
   font-size: 10px; color: transparent; transition: background .25s, border-color .25s, color .25s; }
 .tick.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .side-link.project .tick { border-radius: 4px; }
-.soon-note { padding: 2px 10px; font-size: 13px; color: var(--muted); }
 
 /* Lava progress */
 .lava-track { height: 8px; border-radius: 99px; background: var(--sunken); overflow: hidden; }
@@ -124,8 +145,7 @@ button.side-section-head:hover { background: var(--sunken); }
 .block > h2 { font-size: 22px; margin: 0 0 14px; }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
 
-/* Video */
-.video-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+/* Video and lesson flow */
 /* Lesson flow: steps strip, step labels, and the playlist under the player */
 .lesson-steps { display: flex; align-items: center; gap: 10px; margin: -12px 0 8px; flex-wrap: wrap; }
 .lesson-steps button { display: inline-flex; align-items: center; gap: 8px; background: none; border: 0; padding: 4px 0; font: 600 14px var(--font-body); color: var(--muted); cursor: pointer; }
@@ -402,6 +422,7 @@ button.side-section-head:hover { background: var(--sunken); }
 .nv-row { display: flex; gap: 4px; }
 .nv-row button { font-size: 16px; }
 
+/* Status messages */
 .empty { color: var(--muted); padding: 40px 0; }
 .error-box { padding: 16px; border: 1.5px solid var(--bad); border-radius: var(--radius); color: var(--bad); }
 
@@ -494,6 +515,7 @@ button.side-section-head:hover { background: var(--sunken); }
 .review-empty p { color: var(--muted); }
 .review-note { margin: 8px 0 0; font-size: 13.5px; color: var(--accent); font-weight: 500; }
 
+/* Study & focus on small screens */
 @media (max-width: 860px) {
   .today { grid-template-columns: auto 1fr; gap: 18px; }
   .week { grid-column: 1 / -1; height: 90px; justify-content: space-between; }
@@ -580,6 +602,7 @@ body.resizing .browser-panel { animation: none; }
   .lesson-foot #next-lesson { order: -1; flex-basis: 100%; justify-content: center; padding: 12px 18px; font-size: 15px; }
   .lesson-foot .nav .btn.ghost { background: none; border: 0; padding: 6px 2px; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; box-shadow: none; transform: none; }
 }
+/* Theme switch at the foot of the sidebar: phones only, since the top bar hides its theme button there */
 .side-theme { display: none; }
 @media (max-width: 560px) {
   .side-theme { display: flex; align-items: center; gap: 4px; margin: 20px 10px 8px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }

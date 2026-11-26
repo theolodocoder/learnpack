@@ -4,43 +4,50 @@
 //  - courses come from packs/*.json (built by `server.py build-web`) or packs the learner adds
 //  - progress, notes and code live in IndexedDB on this device
 //  - code runs in Web Workers (Python via Pyodide, JavaScript/TypeScript natively)
+// app.js calls window.LocalBackend.api() instead of fetch("api/...") when the page wasn't served by server.py.
 window.LocalBackend = (() => {
+  // ---------- storage: one IndexedDB key-value store ----------
+  // Keys: "pack:<course>" for added packs, "<course>:state", "<course>:note:<id>", "<course>:code:<id>",
+  // "<course>:trash:<id>-<time>" for deleted notes.
   const STORE = "kv";
-  let dbp;
+  let dbPromise;
   function db() {
-    dbp ||= new Promise((resolve, reject) => {
+    dbPromise ||= new Promise((resolve, reject) => {
       const req = indexedDB.open("learnpack", 1);
       req.onupgradeneeded = () => req.result.createObjectStore(STORE);
       req.onsuccess = () => resolve(req.result);
       req.onerror = () => reject(req.error);
     });
-    return dbp;
+    return dbPromise;
   }
+  // Runs fn(store) in a transaction and resolves once it commits. If fn returns a request
+  // (as store.get does), the promise resolves to that request's result.
   async function tx(mode, fn) {
-    const d = await db();
+    const database = await db();
     return new Promise((resolve, reject) => {
-      const t = d.transaction(STORE, mode), s = t.objectStore(STORE);
-      const out = fn(s);
-      t.oncomplete = () => resolve(out && "result" in out ? out.result : out);
-      t.onerror = () => reject(t.error);
+      const transaction = database.transaction(STORE, mode), store = transaction.objectStore(STORE);
+      const out = fn(store);
+      transaction.oncomplete = () => resolve(out && "result" in out ? out.result : out);
+      transaction.onerror = () => reject(transaction.error);
     });
   }
   const get = (k) => tx("readonly", (s) => s.get(k));
   const put = (k, v) => tx("readwrite", (s) => { s.put(v, k); });
   const del = (k) => tx("readwrite", (s) => { s.delete(k); });
+  // Every [key, value] whose key starts with prefix ("\uffff" sorts after any character a key uses).
   async function entries(prefix) {
-    const d = await db();
+    const database = await db();
     return new Promise((resolve, reject) => {
-      const out = [], range = IDBKeyRange.bound(prefix, prefix + "￿");
-      const req = d.transaction(STORE).objectStore(STORE).openCursor(range);
-      req.onsuccess = () => { const c = req.result; if (c) { out.push([c.key, c.value]); c.continue(); } else resolve(out); };
+      const out = [], range = IDBKeyRange.bound(prefix, prefix + "\uffff");
+      const req = database.transaction(STORE).objectStore(STORE).openCursor(range);
+      req.onsuccess = () => { const cursor = req.result; if (cursor) { out.push([cursor.key, cursor.value]); cursor.continue(); } else resolve(out); };
       req.onerror = () => reject(req.error);
     });
   }
 
   // ---------- courses ----------
-  const cache = {};
-  let bundled;
+  const cache = {};  // course id -> Promise of the full course
+  let bundled;       // packs/index.json: summaries of the courses built into this site
   async function bundledIndex() {
     if (!bundled) {
       try { bundled = await (await fetch("packs/index.json", { cache: "no-cache" })).json(); }
@@ -64,6 +71,7 @@ window.LocalBackend = (() => {
   }
   const lessonsOf = (c) => (c.sections || []).flatMap((s) => s.lessons || []);
   const practiceOf = (c) => lessonsOf(c).flatMap((l) => l.practice || []);
+  // The job object WebRunner.run() takes: what to run, plus the course's support files and Python requirements.
   const job = (c, p, mode, code) => ({ lang: p.language || c.language || "python", mode, code, tests: p.tests,
     support: c._support || {}, requirements: c.requirements?.python || [] });
   // Called when an exercise appears on screen: gets Python/TypeScript and its packages ready in the background.
@@ -72,7 +80,7 @@ window.LocalBackend = (() => {
     if (p) window.WebRunner.warm(job(c, p, "warm", p.starter || ""));
   }
   // Preloading, so nothing waits on a click: the course's runtime, then the exercises the learner is about to see.
-  const saveData = () => navigator.connection?.saveData;
+  const saveData = () => navigator.connection?.saveData;  // the learner asked the browser to save data: skip preloading
   async function warmCourse(cid) {
     if (saveData()) return;
     const c = await course(cid);
@@ -93,10 +101,11 @@ window.LocalBackend = (() => {
   async function listCourses() {
     const out = [];
     const add = async (summaryOrCourse, imported) => {
-      const st = (await get(`${summaryOrCourse.id}:state`)) || emptyState();
+      const state = (await get(`${summaryOrCourse.id}:state`)) || emptyState();
       let total = summaryOrCourse.total, ids = null;
+      // An added pack is stored whole, so count its lessons and ignore progress on lessons it no longer has.
       if (imported) { const ls = lessonsOf(summaryOrCourse); total = ls.length; ids = new Set(ls.map((l) => l.id)); }
-      const done = ids ? st.done.filter((d) => ids.has(d)).length : st.done.length;
+      const done = ids ? state.done.filter((d) => ids.has(d)).length : state.done.length;
       out.push({ id: summaryOrCourse.id, title: summaryOrCourse.title, description: summaryOrCourse.description || "",
                  accent: summaryOrCourse.theme?.accent || summaryOrCourse.accent || null, total, done: Math.min(done, total), imported,
                  cover: summaryOrCourse.cover || summaryOrCourse._cover || null });
@@ -115,10 +124,11 @@ window.LocalBackend = (() => {
   }
 
   // ---------- the /api routes ----------
+  // Same routes, methods and responses as server.py. Errors start with a status ("404 ..."), like app.js's server errors.
   async function api(path, { method = "GET", body } = {}) {
-    const url = new URL(path, "http://x");
+    const url = new URL(path, "http://x");  // the base only lets URL parse a bare path
     const parts = url.pathname.split("/").filter(Boolean).map(decodeURIComponent);
-    if (parts[0] === "browse") throw new Error("browse-unavailable");
+    if (parts[0] === "browse") throw new Error("browse-unavailable");  // the link viewer's proxy needs the server
     if (parts[0] !== "courses") throw new Error("404 not found");
     if (parts.length === 1) return listCourses();
     const cid = parts[1], rest = parts.slice(2), c = await course(cid);
@@ -138,7 +148,7 @@ window.LocalBackend = (() => {
         if (!plainText(body).trim()) await del(key); else await put(key, { html: body, modified: Date.now() });
         return { ok: true };
       }
-      if (method === "DELETE") {
+      if (method === "DELETE") {  // deleted notes are kept under a trash key, like the server's trash folder
         const n = await get(key);
         if (n) { await put(`${cid}:trash:${rest[1]}-${Date.now()}`, n); await del(key); }
         return { ok: true };
@@ -165,10 +175,11 @@ window.LocalBackend = (() => {
   }
 
   // ---------- adding packs (a .learnpack.json bundle, or a .zip of a pack folder) ----------
+  // Fields that may hold {"file": "..."} instead of inline text (the same list as engine/pack.py).
   const TEXT_FIELDS = new Set(["description", "summary", "body", "prompt", "starter", "tests", "solution", "brief", "question", "explanation"]);
   const SUPPORT_EXT = /\.(py|js|mjs|ts|json|txt|csv)$/i;
   let jszipLoading;
-  function loadJSZip() {
+  function loadJSZip() {  // loaded on demand: most learners never add a ZIP
     jszipLoading ||= new Promise((resolve, reject) => {
       const s = Object.assign(document.createElement("script"), { src: "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" });
       s.onload = () => resolve(window.JSZip); s.onerror = () => reject(new Error("Couldn't load the ZIP reader. Check your internet connection."));
@@ -179,9 +190,11 @@ window.LocalBackend = (() => {
   async function fromZip(file) {
     const JSZip = await loadJSZip();
     const zip = await JSZip.loadAsync(file);
-    const cj = Object.keys(zip.files).filter((n) => /(^|\/)course\.json$/.test(n)).sort((a, b) => a.length - b.length)[0];
-    if (!cj) throw new Error("That ZIP doesn't contain a course.json.");
-    const root = cj.slice(0, -"course.json".length);
+    // The shallowest course.json marks the pack root, so a ZIP of the folder or of its contents both work.
+    const courseJson = Object.keys(zip.files).filter((n) => /(^|\/)course\.json$/.test(n)).sort((a, b) => a.length - b.length)[0];
+    if (!courseJson) throw new Error("That ZIP doesn't contain a course.json.");
+    const root = courseJson.slice(0, -"course.json".length);
+    // Reads a file by its path relative to the pack, resolving "." and ".." and refusing paths that leave the pack.
     const read = async (rel, type = "string") => {
       const parts = [];
       for (const seg of (root + rel).split("/")) { if (seg === "..") parts.pop(); else if (seg && seg !== ".") parts.push(seg); }
@@ -191,6 +204,7 @@ window.LocalBackend = (() => {
       if (!f) throw new Error(`The pack is missing a file: ${rel}`);
       return f.async(type);
     };
+    // Expands {"include": "x.json"} nodes and {"file": "x.md"} text fields, as engine/pack.py does on the server.
     const resolve = async (node) => {
       if (Array.isArray(node)) return Promise.all(node.map(resolve));
       if (node && typeof node === "object") {

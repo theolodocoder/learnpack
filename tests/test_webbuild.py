@@ -1,3 +1,4 @@
+"""Tests for engine/webbuild.py: the static web build."""
 import json
 from pathlib import Path
 

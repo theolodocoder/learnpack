@@ -1,6 +1,7 @@
 "use strict";
 // Study logic with no DOM: dates, streaks, the review schedule, timer phases.
 // Loaded by the browser as window.Study, and by tests/study.test.js through require().
+// Days are "YYYY-MM-DD" strings, so they compare and sort as plain text.
 (function () {
   const pad = (n) => String(n).padStart(2, "0");
 
@@ -18,11 +19,12 @@
   // until it's over, so the streak runs through yesterday when today hasn't hit the bar yet.
   function streak(daily, today, minSeconds) {
     let day = (daily[today] || 0) >= minSeconds ? today : addDays(today, -1);
-    let n = 0;
-    while ((daily[day] || 0) >= minSeconds) { n++; day = addDays(day, -1); }
-    return n;
+    let days = 0;
+    while ((daily[day] || 0) >= minSeconds) { days++; day = addDays(day, -1); }
+    return days;
   }
 
+  // The last seven days, oldest first, for the dashboard's bar chart.
   function week(daily, today) {
     return Array.from({ length: 7 }, (_, i) => {
       const key = addDays(today, i - 6);
@@ -47,6 +49,7 @@
     return "next";
   }
 
+  // Card ids due today or earlier, most overdue first.
   function due(review, today) {
     return Object.entries(review)
       .filter(([, c]) => c.due <= today)

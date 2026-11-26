@@ -1,3 +1,4 @@
+"""Tests for engine/pack.py: loading packs, file includes, validation messages and public_course."""
 import json
 from pathlib import Path
 

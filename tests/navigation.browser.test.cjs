@@ -1,4 +1,6 @@
-// Requires playwright-core and its Chromium browser.
+// Browser tests for lesson navigation: Next and manual completion (server.py), and keyboard
+// navigation in both server.py and the static web build. Requires playwright-core and a Chromium browser.
+// Env: BROWSER_EXECUTABLE (Chromium/Chrome path), PYTHON (interpreter for the test servers).
 const assert = require("node:assert/strict");
 const { spawn } = require("node:child_process");
 const { once } = require("node:events");

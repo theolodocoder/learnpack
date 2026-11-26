@@ -2,6 +2,9 @@
 
   python3 server.py build-web site/            every pack in courses/ (not _template), ready to host
   python3 server.py bundle courses/x x.json   one shareable pack file people can drag into the web version
+
+The web version runs entirely in the browser (web/local.js, web/runner.js), so a bundle carries everything
+the server would otherwise read from the pack folder.
 """
 import base64
 import json
@@ -32,18 +35,20 @@ def bundle(pack_dir: Path, embed_cover: bool = True) -> dict:
     if css:
         course["_themeCss"] = (pack_dir / css).read_text(encoding="utf-8")
     if embed_cover:  # a shared bundle has no server behind it, so the card cover travels inside it
-        course["_cover"] = {m: f"data:{COVER_TYPES[f.suffix.lower()]};base64,{base64.b64encode(f.read_bytes()).decode()}"
-                            for m, f in cover_files(course, pack_dir).items()} or None
+        course["_cover"] = {mode: f"data:{COVER_TYPES[f.suffix.lower()]};base64,{base64.b64encode(f.read_bytes()).decode()}"
+                            for mode, f in cover_files(course, pack_dir).items()} or None
     course["_bundle"] = 1
     return course
 
 
 def summary(course: dict) -> dict:
+    """The course card fields for packs/index.json (same shape as the server's /api/courses, minus progress)."""
     return {"id": course["id"], "title": course["title"], "description": course.get("description", ""),
             "accent": course.get("theme", {}).get("accent"), "total": sum(1 for _ in lessons(course))}
 
 
 def build_web(out: Path, courses_dir: Path = ROOT / "courses") -> list[str]:
+    """Replace out with a copy of web/ plus packs/*.json for every course. Returns the course ids."""
     out = Path(out)
     if out.exists():
         shutil.rmtree(out)
@@ -54,13 +59,13 @@ def build_web(out: Path, courses_dir: Path = ROOT / "courses") -> list[str]:
     for name in ("runner.js", "sw.js"):
         f = out / name
         f.write_text(f.read_text().replace('const BUILD = "dev"', f'const BUILD = "{build_id}"'))
-    index = out / "index.html"
-    html = index.read_text()
+    index_html = out / "index.html"
+    html = index_html.read_text()
     for name in ("style.css", "study.js", "local.js", "runner.js", "app.js"):
         html = html.replace(f'"{name}"', f'"{name}?v={build_id}"')
-    index.write_text(html)
+    index_html.write_text(html)
     (out / "packs").mkdir()
-    index = []
+    index = []  # becomes packs/index.json, the list the home page reads
     for pack in list_packs(courses_dir):
         course = bundle(pack, embed_cover=False)
         (out / "packs" / f"{course['id']}.json").write_text(json.dumps(course, ensure_ascii=False), encoding="utf-8")
